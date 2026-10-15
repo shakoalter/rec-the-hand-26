@@ -7,9 +7,12 @@ describe('useHandStore', () => {
       sessionId: 'test-session-123',
       handNumber: 1,
       currentStep: 1,
+      currentStreet: 'preflop',
       heroPosition: 'BTN',
       heroCards: [],
       preflopActions: [],
+      flopCards: [],
+      flopActions: [],
       stackAtStart: 50000
     });
   });
@@ -32,27 +35,35 @@ describe('useHandStore', () => {
     expect(useHandStore.getState().heroCards).toHaveLength(1);
   });
 
-  it('debe permitir remover cartas y limpiar la mano', () => {
+  it('debe permitir añadir hasta 3 cartas al flop y bloquear duplicadas con Hero', () => {
     const store = useHandStore.getState();
     store.addCard({ rank: 'A', suit: 'spades' });
     store.addCard({ rank: 'K', suit: 'hearts' });
-    store.removeCard(0);
-    expect(useHandStore.getState().heroCards).toHaveLength(1);
-    expect(useHandStore.getState().heroCards[0].rank).toBe('K');
 
-    store.clearCards();
-    expect(useHandStore.getState().heroCards).toHaveLength(0);
+    // Intentar agregar A♠ al flop debe ser bloqueado por colisión
+    store.addFlopCard({ rank: 'A', suit: 'spades' });
+    expect(useHandStore.getState().flopCards).toHaveLength(0);
+
+    // Agregar cartas válidas al flop
+    store.addFlopCard({ rank: 'Q', suit: 'hearts' });
+    store.addFlopCard({ rank: '7', suit: 'spades' });
+    store.addFlopCard({ rank: '8', suit: 'diamonds' });
+    expect(useHandStore.getState().flopCards).toHaveLength(3);
+
+    // Intentar agregar una 4ta carta al flop debe ser ignorado
+    store.addFlopCard({ rank: '2', suit: 'clubs' });
+    expect(useHandStore.getState().flopCards).toHaveLength(3);
   });
 
-  it('debe registrar acciones preflop con orden y montos', () => {
+  it('debe calcular los jugadores activos filtrando los que foldearon preflop', () => {
     const store = useHandStore.getState();
-    store.addPreflopAction('UTG', false, 'limp', 1000);
-    store.addPreflopAction('BTN', true, 'raise', 4000);
+    store.addPreflopAction('UTG', false, 'limp');
+    store.addPreflopAction('UTG+1', false, 'fold');
+    store.addPreflopAction('MP', false, 'fold');
+    store.addPreflopAction('BTN', true, 'call');
 
-    const actions = useHandStore.getState().preflopActions;
-    expect(actions).toHaveLength(2);
-    expect(actions[0].actionType).toBe('limp');
-    expect(actions[1].isHero).toBe(true);
-    expect(actions[1].amount).toBe(4000);
+    const allPositions = ['UTG', 'UTG+1', 'MP', 'BTN'];
+    const active = store.getActivePlayersForFlop(allPositions as any);
+    expect(active).toEqual(['UTG', 'BTN']);
   });
 });

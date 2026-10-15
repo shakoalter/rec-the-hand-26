@@ -3,29 +3,50 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
 import { ActionConsole } from '../components/poker/ActionConsole';
+import { CommunityCardsPicker } from '../components/poker/CommunityCardsPicker';
+import { FlopActionConsole } from '../components/poker/FlopActionConsole';
 import { useHandStore } from '../stores/handStore';
 import { useSessionStore } from '../stores/sessionStore';
-import { ActionType } from '../types/poker';
+import { ActionType, HandStreet } from '../types/poker';
+import { getPositionsForPlayerCount } from '../core/positionEngine';
+import { clsx } from 'clsx';
 
 interface HandRecorderViewProps {
   onBackToSession: () => void;
 }
+
+const STREETS: { id: HandStreet; label: string }[] = [
+  { id: 'preflop', label: 'PREFLOP' },
+  { id: 'flop', label: 'FLOP' },
+  { id: 'turn', label: 'TURN' },
+  { id: 'river', label: 'RIVER' }
+];
 
 export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSession }) => {
   const { activeSession } = useSessionStore();
   const {
     handNumber,
     currentStep,
+    currentStreet,
     heroPosition,
     dealerPosition,
     heroCards,
     preflopActions,
+    flopCards,
+    flopActions,
     setStep,
+    setStreet,
     setHeroPosition,
     addCard,
     removeCard,
     clearCards,
     addPreflopAction,
+    addFlopCard,
+    removeFlopCard,
+    clearFlopCards,
+    addFlopAction,
+    isCardInUse,
+    getActivePlayersForFlop,
     saveHand,
     resetHand
   } = useHandStore();
@@ -40,24 +61,36 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     }
   };
 
+  const allPositions = getPositionsForPlayerCount(activeSession.playerCount);
+  const activePlayers = getActivePlayersForFlop(allPositions);
+
   const handleNextStep = () => {
     triggerHaptic();
-    setStep(2);
+    if (currentStep === 1) {
+      setStep(2);
+      setStreet('preflop');
+    } else if (currentStep === 2) {
+      setStep(3);
+      setStreet('flop');
+    }
   };
 
   const handlePrevStep = () => {
     triggerHaptic();
-    if (currentStep === 2) {
+    if (currentStep === 3) {
+      setStep(2);
+      setStreet('preflop');
+    } else if (currentStep === 2) {
       setStep(1);
     } else {
       onBackToSession();
     }
   };
 
-  const handleHeroAction = async (actionType: ActionType, amount?: number) => {
+  const handleHeroPreflopAction = async (actionType: ActionType, amount?: number) => {
     addPreflopAction(heroPosition, true, actionType, amount);
 
-    // Si foldea o termina la acción, persistimos automáticamente la mano
+    // Si foldea en preflop, se guarda la mano automáticamente
     if (actionType === 'fold') {
       try {
         await saveHand('Hero fold preflop');
@@ -66,8 +99,24 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         setTimeout(() => {
           setSavedSuccess(false);
           resetHand();
-          // Avanzar la posición de Hero a la siguiente mano de forma natural
-          // O regresar a la mesa para la siguiente mano
+        }, 1200);
+      } catch (err) {
+        console.error('Error al guardar la mano:', err);
+      }
+    }
+  };
+
+  const handleHeroFlopAction = async (actionType: ActionType, amount?: number) => {
+    addFlopAction(heroPosition, true, actionType, amount);
+
+    if (actionType === 'fold') {
+      try {
+        await saveHand('Hero fold en flop');
+        triggerHaptic();
+        setSavedSuccess(true);
+        setTimeout(() => {
+          setSavedSuccess(false);
+          resetHand();
         }, 1200);
       } catch (err) {
         console.error('Error al guardar la mano:', err);
@@ -125,11 +174,10 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col gap-3 py-2">
-        {currentStep === 1 ? (
+      <div className="flex-1 flex flex-col gap-3 py-2 overflow-y-auto no-scrollbar">
+        {currentStep === 1 && (
           /* PASO 1: Posición y Mano */
           <>
-            {/* Mesa Ovalada con Asientos */}
             <PokerTable
               playerCount={activeSession.playerCount}
               heroPosition={heroPosition}
@@ -137,7 +185,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               onSelectHeroPosition={setHeroPosition}
             />
 
-            {/* Selector de Cartas Propias */}
             <CardSelector
               cards={heroCards}
               onAddCard={addCard}
@@ -147,7 +194,9 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               label="Tu mano (2 toques: rango + palo)"
             />
           </>
-        ) : (
+        )}
+
+        {currentStep === 2 && (
           /* PASO 2: Acción Preflop */
           <>
             {/* Resumen de cartas y posición seleccionadas */}
@@ -176,15 +225,13 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               </div>
             </div>
 
-            {/* Consola de Acciones */}
             <ActionConsole
               heroPosition={heroPosition}
               playerCount={activeSession.playerCount}
               bbAmount={activeSession.blinds.bb}
-              onHeroAction={handleHeroAction}
+              onHeroAction={handleHeroPreflopAction}
             />
 
-            {/* Acciones Registradas en esta mano */}
             {preflopActions.length > 0 && (
               <div className="bg-[#0A111A] border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
@@ -206,11 +253,98 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             )}
           </>
         )}
+
+        {currentStep === 3 && (
+          /* PASO 3: Flop Comunitario y Acciones */
+          <>
+            {/* Jugadores activos restantes */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Jugadores activos ({activePlayers.length})
+              </span>
+              <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                {activePlayers.map((pos) => (
+                  <span
+                    key={pos}
+                    className={clsx(
+                      'px-2.5 py-1 rounded-lg text-xs font-bold border flex-shrink-0',
+                      pos === heroPosition
+                        ? 'bg-emerald-950/80 border-emerald-500/80 text-poker-emerald shadow-sm'
+                        : 'bg-[#121E2C] border-[#223348] text-slate-300'
+                    )}
+                  >
+                    {pos === heroPosition ? `HERO (${pos})` : pos}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Selector de Calles (Street Tabs) */}
+            <div className="grid grid-cols-4 gap-1.5 bg-[#0C1522] p-1 rounded-xl border border-[#1A293D]">
+              {STREETS.map((st) => (
+                <button
+                  key={st.id}
+                  type="button"
+                  onClick={() => {
+                    triggerHaptic();
+                    if (st.id === 'preflop') setStep(2);
+                    setStreet(st.id);
+                  }}
+                  className={clsx(
+                    'py-1.5 rounded-lg text-xs font-bold transition-all text-center',
+                    currentStreet === st.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  )}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Selector de Cartas del Flop */}
+            <CommunityCardsPicker
+              flopCards={flopCards}
+              onAddCard={addFlopCard}
+              onRemoveCard={removeFlopCard}
+              onClear={clearFlopCards}
+              isCardInUse={isCardInUse}
+            />
+
+            {/* Consola de Acciones del Flop */}
+            <FlopActionConsole
+              heroPosition={heroPosition}
+              bbAmount={activeSession.blinds.bb}
+              onHeroAction={handleHeroFlopAction}
+            />
+
+            {/* Acciones del Flop Registradas */}
+            {flopActions.length > 0 && (
+              <div className="bg-[#0A111A] border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+                  Acciones en el Flop
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {flopActions.map((act) => (
+                    <span
+                      key={act.id}
+                      className="px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-semibold text-white border border-slate-700 flex items-center gap-1.5"
+                    >
+                      <span className="text-poker-emerald">{act.position}:</span>
+                      <span className="capitalize">{act.actionType}</span>
+                      {act.amount && <span className="text-slate-300">${act.amount.toLocaleString('es-AR')}</span>}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Bottom Floating Navigation / Action Button */}
+      {/* Floating Bottom Navigation */}
       <div className="pt-2 pb-1">
-        {currentStep === 1 ? (
+        {currentStep === 1 && (
           <button
             type="button"
             onClick={handleNextStep}
@@ -219,15 +353,39 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             <span>Siguiente</span>
             <ArrowRight className="w-5 h-5" />
           </button>
-        ) : (
+        )}
+
+        {currentStep === 2 && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleCompleteHand}
+              disabled={preflopActions.length === 0}
+              className="flex-1 h-14 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-sm rounded-2xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all disabled:opacity-40"
+            >
+              <Check className="w-4 h-4" />
+              <span>Guardar Preflop</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="flex-1 h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-base rounded-2xl shadow-neon-emerald flex items-center justify-center gap-1.5 transition-all"
+            >
+              <span>Ir al Flop</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {currentStep === 3 && (
           <button
             type="button"
             onClick={handleCompleteHand}
-            disabled={preflopActions.length === 0}
-            className="w-full h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-lg rounded-2xl shadow-neon-emerald flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:pointer-events-none"
+            className="w-full h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-lg rounded-2xl shadow-neon-emerald flex items-center justify-center gap-2 transition-all"
           >
             <Check className="w-5 h-5" />
-            <span>Guardar mano</span>
+            <span>Guardar mano con Flop</span>
           </button>
         )}
       </div>

@@ -1,21 +1,25 @@
 import { create } from 'zustand';
-import { Card, TablePosition, PlayerAction, ActionType } from '../types/poker';
+import { Card, TablePosition, PlayerAction, ActionType, HandStreet } from '../types/poker';
 import { RecordedHand } from '../types/session';
 import { sessionRepository } from '../db/sessionRepository';
 
 interface HandState {
   sessionId: string | null;
   handNumber: number;
-  currentStep: 1 | 2; // Paso 1: Posición y Mano, Paso 2: Acción Preflop
+  currentStep: 1 | 2 | 3; // 1: Posición y Mano, 2: Acción Preflop, 3: Flop Comunitario y Acciones
+  currentStreet: HandStreet;
   heroPosition: TablePosition;
   dealerPosition: TablePosition;
   heroCards: Card[];
   preflopActions: PlayerAction[];
+  flopCards: Card[];
+  flopActions: PlayerAction[];
   stackAtStart: number;
 
   // Acciones
   initHand: (sessionId: string, currentStack: number, defaultHeroPos?: TablePosition) => Promise<void>;
-  setStep: (step: 1 | 2) => void;
+  setStep: (step: 1 | 2 | 3) => void;
+  setStreet: (street: HandStreet) => void;
   setHeroPosition: (pos: TablePosition) => void;
   setDealerPosition: (pos: TablePosition) => void;
   addCard: (card: Card) => void;
@@ -23,6 +27,16 @@ interface HandState {
   clearCards: () => void;
   addPreflopAction: (position: TablePosition, isHero: boolean, actionType: ActionType, amount?: number) => void;
   clearPreflopActions: () => void;
+
+  // Flop
+  addFlopCard: (card: Card) => void;
+  removeFlopCard: (index: number) => void;
+  clearFlopCards: () => void;
+  addFlopAction: (position: TablePosition, isHero: boolean, actionType: ActionType, amount?: number) => void;
+  clearFlopActions: () => void;
+
+  isCardInUse: (card: Card) => boolean;
+  getActivePlayersForFlop: (allPositions: TablePosition[]) => TablePosition[];
   saveHand: (notes?: string) => Promise<RecordedHand>;
   resetHand: () => void;
 }
@@ -31,10 +45,13 @@ export const useHandStore = create<HandState>((set, get) => ({
   sessionId: null,
   handNumber: 1,
   currentStep: 1,
+  currentStreet: 'preflop',
   heroPosition: 'BTN',
   dealerPosition: 'BTN',
   heroCards: [],
   preflopActions: [],
+  flopCards: [],
+  flopActions: [],
   stackAtStart: 50000,
 
   initHand: async (sessionId, currentStack, defaultHeroPos = 'BTN') => {
@@ -45,26 +62,32 @@ export const useHandStore = create<HandState>((set, get) => ({
       sessionId,
       handNumber: nextHandNumber,
       currentStep: 1,
+      currentStreet: 'preflop',
       heroPosition: defaultHeroPos,
       dealerPosition: 'BTN',
       heroCards: [],
       preflopActions: [],
+      flopCards: [],
+      flopActions: [],
       stackAtStart: currentStack,
     });
   },
 
   setStep: (step) => set({ currentStep: step }),
 
+  setStreet: (street) => set({ currentStreet: street }),
+
   setHeroPosition: (pos) => set({ heroPosition: pos }),
 
   setDealerPosition: (pos) => set({ dealerPosition: pos }),
 
   addCard: (card) => {
-    const { heroCards } = get();
+    const { heroCards, flopCards } = get();
     if (heroCards.length >= 2) return;
-    // Evitar cartas duplicadas
-    const exists = heroCards.some((c) => c.rank === card.rank && c.suit === card.suit);
-    if (!exists) {
+    const inUse = [...heroCards, ...flopCards].some(
+      (c) => c.rank === card.rank && c.suit === card.suit
+    );
+    if (!inUse) {
       set({ heroCards: [...heroCards, card] });
     }
   },
@@ -92,11 +115,62 @@ export const useHandStore = create<HandState>((set, get) => ({
 
   clearPreflopActions: () => set({ preflopActions: [] }),
 
+  // Flop methods
+  addFlopCard: (card) => {
+    const { heroCards, flopCards } = get();
+    if (flopCards.length >= 3) return;
+    const inUse = [...heroCards, ...flopCards].some(
+      (c) => c.rank === card.rank && c.suit === card.suit
+    );
+    if (!inUse) {
+      set({ flopCards: [...flopCards, card] });
+    }
+  },
+
+  removeFlopCard: (index) => {
+    const { flopCards } = get();
+    set({ flopCards: flopCards.filter((_, i) => i !== index) });
+  },
+
+  clearFlopCards: () => set({ flopCards: [] }),
+
+  addFlopAction: (position, isHero, actionType, amount) => {
+    const newAction: PlayerAction = {
+      id: crypto.randomUUID ? crypto.randomUUID() : `flop_act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      position,
+      isHero,
+      actionType,
+      amount,
+      timestamp: Date.now()
+    };
+    set((state) => ({
+      flopActions: [...state.flopActions, newAction]
+    }));
+  },
+
+  clearFlopActions: () => set({ flopActions: [] }),
+
+  isCardInUse: (card) => {
+    const { heroCards, flopCards } = get();
+    return [...heroCards, ...flopCards].some(
+      (c) => c.rank === card.rank && c.suit === card.suit
+    );
+  },
+
+  getActivePlayersForFlop: (allPositions) => {
+    const { preflopActions } = get();
+    const foldedPositions = new Set(
+      preflopActions.filter((a) => a.actionType === 'fold').map((a) => a.position)
+    );
+    return allPositions.filter((pos) => !foldedPositions.has(pos));
+  },
+
   saveHand: async (notes) => {
     const state = get();
     if (!state.sessionId) throw new Error('No hay sesión activa para guardar la mano');
 
-    const heroFolded = state.preflopActions.some((a) => a.isHero && a.actionType === 'fold');
+    const heroFolded = state.preflopActions.some((a) => a.isHero && a.actionType === 'fold') ||
+      state.flopActions.some((a) => a.isHero && a.actionType === 'fold');
 
     const hand: RecordedHand = {
       id: crypto.randomUUID ? crypto.randomUUID() : `hand_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -107,6 +181,8 @@ export const useHandStore = create<HandState>((set, get) => ({
       heroCards: state.heroCards.length === 2 ? [state.heroCards[0], state.heroCards[1]] : undefined,
       stackAtStart: state.stackAtStart,
       preflopActions: state.preflopActions,
+      flopCards: state.flopCards.length === 3 ? [state.flopCards[0], state.flopCards[1], state.flopCards[2]] : undefined,
+      flopActions: state.flopActions.length > 0 ? state.flopActions : undefined,
       isQuickMode: true,
       isComplete: state.preflopActions.length > 0,
       isEstimated: false,
@@ -122,8 +198,11 @@ export const useHandStore = create<HandState>((set, get) => ({
     set((state) => ({
       handNumber: state.handNumber + 1,
       currentStep: 1,
+      currentStreet: 'preflop',
       heroCards: [],
-      preflopActions: []
+      preflopActions: [],
+      flopCards: [],
+      flopActions: []
     }));
   }
 }));
