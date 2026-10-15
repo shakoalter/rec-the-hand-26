@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+input, textarea {
+  user-select: text;
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  background-color: #070C12;
+  overscroll-behavior-y: none;
+}
+
+/* Glassmorphism card utility */
+.glass-panel {
+  background: rgba(14, 23, 36, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.glass-panel-subtle {
+  background: rgba(18, 28, 44, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Active neon glow pill/button */
+.neon-active {
+  border-color: #10B981 !important;
+  box-shadow: 0 0 14px rgba(16, 185, 129, 0.45), inset 0 0 6px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Safe area insets for mobile devices with notches */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar for clean app feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
