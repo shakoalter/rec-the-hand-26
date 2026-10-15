@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ActionType, TablePosition } from '../../types/poker';
 import { clsx } from 'clsx';
 import { Minus, Plus, FastForward } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Minus, Plus, FastForward } from 'lucide-react';
 interface ActionConsoleProps {
   currentPosition: TablePosition;
   isHero: boolean;
+  currentHighestBet: number;
   raiseAmount: number;
   onActionSelect: (action: ActionType, amount?: number) => void;
   onRaiseAmountChange: (amount: number) => void;
@@ -14,18 +15,10 @@ interface ActionConsoleProps {
   bbAmount: number;
 }
 
-const PRESETS = [
-  { label: '2K', amount: 2000 },
-  { label: '3K', amount: 3000 },
-  { label: '4K', amount: 4000 },
-  { label: '5K', amount: 5000 },
-  { label: '8K', amount: 8000 },
-  { label: '10K', amount: 10000 },
-];
-
 export const ActionConsole: React.FC<ActionConsoleProps> = ({
   currentPosition,
   isHero,
+  currentHighestBet,
   raiseAmount,
   onActionSelect,
   onRaiseAmountChange,
@@ -33,7 +26,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
   canFastForwardToHero = false,
   bbAmount
 }) => {
-  const [selectedPreset, setSelectedPreset] = useState<number>(raiseAmount);
+  const isPotRaised = currentHighestBet > bbAmount;
+  const isBigBlind = currentPosition === 'BB';
 
   const triggerHaptic = () => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -41,14 +35,25 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
     }
   };
 
+  // Presets adaptados al tamaño de la ciega grande o al tamaño del raise actual
+  const minLegalRaise = isPotRaised ? currentHighestBet * 2 : bbAmount * 2;
+  const presets = [
+    { label: `${(bbAmount * 2) / 1000}K`, amount: bbAmount * 2 },
+    { label: `${(bbAmount * 3) / 1000}K`, amount: bbAmount * 3 },
+    { label: `${(bbAmount * 4) / 1000}K`, amount: bbAmount * 4 },
+    { label: `${(bbAmount * 5) / 1000}K`, amount: bbAmount * 5 },
+    { label: `${(bbAmount * 8) / 1000}K`, amount: bbAmount * 8 },
+    { label: `${(bbAmount * 10) / 1000}K`, amount: bbAmount * 10 },
+  ];
+
   const handleAction = (action: ActionType) => {
     triggerHaptic();
     if (action === 'raise') {
-      onActionSelect('raise', raiseAmount);
+      onActionSelect('raise', Math.max(minLegalRaise, raiseAmount));
     } else if (action === 'call') {
-      onActionSelect('call', bbAmount);
-    } else if (action === 'limp') {
-      onActionSelect('limp', bbAmount);
+      onActionSelect('call', currentHighestBet);
+    } else if (action === 'limp' || action === 'check') {
+      onActionSelect(isBigBlind && !isPotRaised ? 'check' : 'limp', bbAmount);
     } else {
       onActionSelect('fold');
     }
@@ -56,22 +61,19 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
 
   const handlePresetSelect = (amount: number) => {
     triggerHaptic();
-    setSelectedPreset(amount);
-    onRaiseAmountChange(amount);
+    onRaiseAmountChange(Math.max(minLegalRaise, amount));
   };
 
   const handleDec = () => {
     triggerHaptic();
-    const next = Math.max(bbAmount * 2, raiseAmount - 500);
+    const next = Math.max(minLegalRaise, raiseAmount - 500);
     onRaiseAmountChange(next);
-    setSelectedPreset(next);
   };
 
   const handleInc = () => {
     triggerHaptic();
     const next = raiseAmount + 500;
     onRaiseAmountChange(next);
-    setSelectedPreset(next);
   };
 
   return (
@@ -79,14 +81,14 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
       {/* Barra de Turno y Atajo */}
       <div className="flex items-center justify-between">
         {isHero ? (
-          <div className="px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-1.5 shadow-neon-emerald">
-            <span className="w-2 h-2 rounded-full bg-poker-emerald animate-pulse" />
+          <div className="px-3.5 py-1.5 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-2 shadow-neon-emerald">
+            <span className="w-2.5 h-2.5 rounded-full bg-poker-emerald animate-pulse" />
             HERO ({currentPosition}) — TU TURNO
           </div>
         ) : (
-          <div className="px-3 py-1 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-1.5">
+          <div className="px-3 py-1.5 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-400" />
-            TURNO: {currentPosition} (Rival)
+            RIVAL ({currentPosition})
           </div>
         )}
 
@@ -97,7 +99,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
               triggerHaptic();
               onFastForwardToHero?.();
             }}
-            className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-1 active:scale-95 transition-all shadow-sm"
+            className="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
           >
             <FastForward className="w-3.5 h-3.5" />
             <span>Folds hasta Hero</span>
@@ -116,38 +118,52 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
           Fold
         </button>
 
-        {/* LIMP */}
+        {/* LIMP / CHECK (Deshabilitado si ya hubo subida previa en el pozo) */}
         <button
           type="button"
-          onClick={() => handleAction('limp')}
-          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white bg-[#10B981] hover:bg-[#059669] shadow-md"
+          disabled={isPotRaised}
+          onClick={() => handleAction(isBigBlind ? 'check' : 'limp')}
+          className={clsx(
+            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
+            isPotRaised
+              ? 'bg-slate-800/40 text-slate-600 border border-slate-800 cursor-not-allowed opacity-40'
+              : 'bg-[#10B981] hover:bg-[#059669]'
+          )}
         >
-          Limp
+          {isPotRaised ? 'No Limp' : isBigBlind ? 'Check' : 'Limp'}
         </button>
 
         {/* CALL */}
         <button
           type="button"
           onClick={() => handleAction('call')}
-          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white bg-[#1D72FE] hover:bg-[#155FD6] shadow-md"
+          className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#1D72FE] hover:bg-[#155FD6] shadow-md leading-tight"
         >
-          Call
+          <span>Call</span>
+          {isPotRaised && (
+            <span className="text-[11px] font-semibold text-blue-200">
+              ${currentHighestBet.toLocaleString('es-AR')}
+            </span>
+          )}
         </button>
 
         {/* RAISE */}
         <button
           type="button"
           onClick={() => handleAction('raise')}
-          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-md"
+          className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-md leading-tight"
         >
-          Raise
+          <span>{isPotRaised ? '3-Bet' : 'Raise'}</span>
+          <span className="text-[11px] font-semibold text-red-200">
+            ${raiseAmount.toLocaleString('es-AR')}
+          </span>
         </button>
       </div>
 
-      {/* Fila de Presets (2K, 3K, 4K, 5K, 8K, 10K) */}
+      {/* Fila de Presets */}
       <div className="grid grid-cols-6 gap-1.5 pt-0.5">
-        {PRESETS.map((p) => {
-          const isActive = selectedPreset === p.amount;
+        {presets.map((p) => {
+          const isActive = raiseAmount === p.amount;
           return (
             <button
               key={p.label}
@@ -166,7 +182,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         })}
       </div>
 
-      {/* Fila "Personalizado" con Stepper [-] 4.000 [+] */}
+      {/* Fila "Personalizado" con Stepper */}
       <div className="flex items-center justify-between bg-[#0F1824] border border-[#1E2E42] rounded-2xl h-13 px-4 mt-0.5">
         <span className="text-sm font-semibold text-slate-300">
           Personalizado

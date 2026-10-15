@@ -6,7 +6,7 @@ export interface Card {
   suit: Suit;
 }
 
-export type TablePosition = 'BTN' | 'SB' | 'BB' | 'UTG' | 'UTG+1' | 'MP' | 'HJ' | 'CO';
+export type TablePosition = 'BTN' | 'SB' | 'BB' | 'UTG' | 'UTG+1' | 'UTG+2' | 'MP' | 'HJ' | 'CO';
 
 export type ActionType = 'fold' | 'check' | 'limp' | 'call' | 'bet' | 'raise' | '3bet' | '4bet' | 'allin';
 

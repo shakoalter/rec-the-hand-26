@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, MoreVertical, CheckCircle2 } from 'lucide-react';
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
@@ -55,6 +55,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [raiseAmount, setRaiseAmount] = useState<number>(4000);
+  const [currentHighestBet, setCurrentHighestBet] = useState<number>(activeSession?.blinds.bb || 1000);
 
   if (!activeSession) return null;
 
@@ -74,7 +75,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   const isHeroTurn = currentTurnPosition === heroPosition;
   const heroIndex = actionOrder.indexOf(heroPosition);
 
-  // Inicializar estado de acciones por asiento
+  // Inicializar y sincronizar reactivamente las acciones por asiento con heroPosition
   const [seatActions, setSeatActions] = useState<Record<TablePosition, SeatActionState>>(() => {
     const initial: Record<string, SeatActionState> = {};
     actionOrder.forEach((pos) => {
@@ -88,26 +89,53 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     return initial as Record<TablePosition, SeatActionState>;
   });
 
-  // Manejar acción del jugador en turno (sea un Rival o sea Hero)
+  // Cada vez que Hero cambie de asiento en Paso 1, sincronizar la marca isHero
+  useEffect(() => {
+    setSeatActions((prev) => {
+      const updated = { ...prev };
+      actionOrder.forEach((pos) => {
+        if (!updated[pos]) {
+          updated[pos] = { position: pos, isHero: pos === heroPosition, actionType: 'fold', hasActed: false };
+        } else {
+          updated[pos] = { ...updated[pos], isHero: pos === heroPosition };
+        }
+      });
+      return updated;
+    });
+  }, [heroPosition, actionOrder]);
+
+  // Manejar acción del jugador en turno
   const handleActionSelect = (action: ActionType, amount?: number) => {
     const actingPos = currentTurnPosition;
     const isHero = actingPos === heroPosition;
 
-    // Actualizar asiento actual
+    let finalAmount = amount;
+    if (action === 'raise') {
+      finalAmount = amount || raiseAmount;
+      if (finalAmount > currentHighestBet) {
+        setCurrentHighestBet(finalAmount);
+        setRaiseAmount(finalAmount * 2); // Preparar siguiente 3-bet
+      }
+    } else if (action === 'call') {
+      finalAmount = currentHighestBet;
+    } else if (action === 'limp') {
+      finalAmount = activeSession.blinds.bb;
+    }
+
     setSeatActions((prev) => ({
       ...prev,
       [actingPos]: {
         position: actingPos,
         isHero,
         actionType: action,
-        amount: action === 'raise' ? (amount || raiseAmount) : (action === 'call' || action === 'limp' ? activeSession.blinds.bb : undefined),
+        amount: finalAmount,
         hasActed: true
       }
     }));
 
-    addPreflopAction(actingPos, isHero, action, amount);
+    addPreflopAction(actingPos, isHero, action, finalAmount);
 
-    // Si es Hero y foldea -> autoguardado ultrarrápido
+    // Si es Hero y foldea -> autoguardado rápido
     if (isHero && action === 'fold') {
       saveHand('Hero fold preflop').then(() => {
         triggerHaptic();
@@ -155,6 +183,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       setStep(2);
       setStreet('preflop');
       setTurnIndex(0); // Comienza en UTG
+      setCurrentHighestBet(activeSession.blinds.bb);
     } else if (currentStep === 2) {
       setStep(3);
       setStreet('flop');
@@ -242,7 +271,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         </div>
       )}
 
-      {/* Encabezado idéntico al mockup (< | Mano #12 | ⋮) */}
+      {/* Encabezado (< | Mano #12 | ⋮) */}
       <header className="flex items-center justify-between py-2 border-b border-slate-800/80">
         <button
           type="button"
@@ -269,7 +298,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         </button>
       </header>
 
-      {/* Barra Horizontal Superior de Posiciones */}
+      {/* Barra Horizontal Superior de Posiciones: Exclusivamente los asientos reales sin duplicados */}
       <div className="flex items-center gap-1.5 overflow-x-auto py-2 no-scrollbar border-b border-slate-800/60">
         {actionOrder.map((pos, idx) => {
           const isHero = pos === heroPosition;
@@ -294,7 +323,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                       : 'bg-[#101924] text-slate-500 border border-[#1E2E42]'
               )}
             >
-              {isHero ? `HERO` : pos}
+              {isHero ? `HERO (${pos})` : pos}
             </button>
           );
         })}
@@ -417,6 +446,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             <ActionConsole
               currentPosition={currentTurnPosition}
               isHero={isHeroTurn}
+              currentHighestBet={currentHighestBet}
               raiseAmount={raiseAmount}
               onActionSelect={handleActionSelect}
               onRaiseAmountChange={setRaiseAmount}
@@ -425,7 +455,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               bbAmount={activeSession.blinds.bb}
             />
 
-            {/* Botón flotante para avanzar al Flop o Revisar cuando la acción preflop termina */}
             {allActed && (
               <div className="flex items-center gap-2 pt-1 animate-in fade-in duration-150">
                 <button

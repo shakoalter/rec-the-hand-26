@@ -14,25 +14,24 @@ export const getPositionsForPlayerCount = (playerCount: number): TablePosition[]
     case 6:
       return ['BTN', 'SB', 'BB', 'UTG', 'MP', 'CO'];
     case 7:
-      return ['BTN', 'SB', 'BB', 'UTG', 'MP', 'CO', 'BTN']; // 7-max
-    case 8:
       return ['BTN', 'SB', 'BB', 'UTG', 'MP', 'HJ', 'CO'];
+    case 8:
+      return ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'HJ', 'CO'];
     case 9:
     default:
-      return ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'HJ', 'CO'];
+      return ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO'];
   }
 };
 
 /**
  * Orden de acción preflop estándar en Texas Hold'em:
- * Comienza el jugador a la izquierda de la BB (UTG), y el último en actuar es la BB (salvo que haya subidas).
+ * Comienza el primer jugador a la izquierda de la BB (UTG), y el último en actuar es la BB (salvo que haya subidas).
  */
 export const getPreflopActionOrder = (playerCount: number): TablePosition[] => {
   if (playerCount === 2) {
     return ['BTN', 'BB']; // BTN/SB actúa primero preflop
   }
   const allPositions = getPositionsForPlayerCount(playerCount);
-  // Reordenar para que comience en UTG (o la primera posición después de BB)
   const bbIndex = allPositions.indexOf('BB');
   const order: TablePosition[] = [];
   for (let i = 1; i <= allPositions.length; i++) {

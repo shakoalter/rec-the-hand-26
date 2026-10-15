@@ -2,13 +2,21 @@ import { describe, it, expect } from 'vitest';
 import { getPositionsForPlayerCount, getPreflopActionOrder } from './positionEngine';
 
 describe('Poker Position Engine', () => {
-  it('debe calcular correctamente las posiciones para una mesa de 9 jugadores', () => {
+  it('debe calcular exactamente 9 posiciones para una mesa de 9 jugadores', () => {
     const positions = getPositionsForPlayerCount(9);
+    expect(positions).toHaveLength(9);
+    expect(positions).toEqual(['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'UTG+2', 'MP', 'HJ', 'CO']);
+  });
+
+  it('debe calcular exactamente 8 posiciones para una mesa de 8 jugadores', () => {
+    const positions = getPositionsForPlayerCount(8);
+    expect(positions).toHaveLength(8);
     expect(positions).toEqual(['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'HJ', 'CO']);
   });
 
   it('debe calcular correctamente las posiciones para una mesa de 6 jugadores (6-max)', () => {
     const positions = getPositionsForPlayerCount(6);
+    expect(positions).toHaveLength(6);
     expect(positions).toEqual(['BTN', 'SB', 'BB', 'UTG', 'MP', 'CO']);
   });
 
