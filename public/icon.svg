@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0E1E30" />
+      <stop offset="100%" stop-color="#05080C" />
+    </radialGradient>
+    <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="512" height="512" rx="110" fill="url(#bg)" />
+  <rect width="504" height="504" x="4" y="4" rx="106" fill="none" stroke="#1E2C3D" stroke-width="4" />
+
+  <!-- Back Card (Tilted) -->
+  <g transform="rotate(12 280 260)">
+    <rect x="180" y="110" width="160" height="240" rx="20" fill="#142132" stroke="#22D3EE" stroke-width="4" stroke-opacity="0.4" />
+  </g>
+
+  <!-- Front Card (Ace of Spades with Glow) -->
+  <g transform="rotate(-6 240 260)">
+    <rect x="140" y="110" width="160" height="240" rx="20" fill="#0C1826" stroke="#10B981" stroke-width="6" filter="url(#neon-glow)" />
+    <!-- Letter A -->
+    <text x="165" y="160" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="900" fill="#10B981">A</text>
+    <!-- Center Spade -->
+    <path d="M 220 200 C 220 180, 205 160, 220 145 C 235 160, 220 180, 220 200 Z" fill="#10B981" />
+    <path d="M 220 175 C 200 200, 180 230, 220 255 C 260 230, 240 200, 220 175 Z" fill="#10B981" />
+    <path d="M 215 250 L 210 270 L 230 270 L 225 250 Z" fill="#10B981" />
+  </g>
+
+  <!-- Bottom Accent Text -->
+  <text x="256" y="430" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="800" fill="#FFFFFF" letter-spacing="4">RECTHEHAND</text>
+</svg>

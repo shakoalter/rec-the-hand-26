@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Square, Layers, Clock, ChevronRight } from 'lucide-react';
+import { Play, Square, Layers, Clock, ChevronRight, Download } from 'lucide-react';
 import { useSessionStore } from '../stores/sessionStore';
 import { useHandStore } from '../stores/handStore';
 import { sessionRepository } from '../db/sessionRepository';
 import { RecordedHand } from '../types/session';
 import { GlassCard } from '../components/common/GlassCard';
+import { ExportModal } from '../components/common/ExportModal';
 import { HandRecorderView } from './HandRecorderView';
 import { HandReviewView } from './HandReviewView';
 
@@ -13,6 +14,7 @@ export const SessionActiveView: React.FC = () => {
   const { initHand } = useHandStore();
 
   const [isRecording, setIsRecording] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [recordedHands, setRecordedHands] = useState<RecordedHand[]>([]);
   const [selectedHandForReview, setSelectedHandForReview] = useState<RecordedHand | null>(null);
 
@@ -77,7 +79,6 @@ export const SessionActiveView: React.FC = () => {
         notes={selectedHandForReview.notes}
         isExistingSavedHand={true}
         onEdit={() => {
-          // Permite editar o regresar
           setSelectedHandForReview(null);
         }}
         onSave={() => setSelectedHandForReview(null)}
@@ -104,12 +105,24 @@ export const SessionActiveView: React.FC = () => {
           </div>
         </div>
 
-        <button
-          onClick={handleFinish}
-          className="px-3 py-1.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-400 text-xs font-semibold hover:bg-red-900/50 flex items-center gap-1 active:scale-95 transition-all"
-        >
-          <Square className="w-3.5 h-3.5" /> Finalizar
-        </button>
+        <div className="flex items-center gap-2">
+          {recordedHands.length > 0 && (
+            <button
+              onClick={() => setIsExportOpen(true)}
+              className="p-2 rounded-lg bg-[#142132] border border-[#233347] text-slate-300 hover:text-white active:scale-95 transition-all"
+              title="Exportar sesión"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          )}
+
+          <button
+            onClick={handleFinish}
+            className="px-3 py-1.5 rounded-lg bg-red-950/40 border border-red-500/30 text-red-400 text-xs font-semibold hover:bg-red-900/50 flex items-center gap-1 active:scale-95 transition-all"
+          >
+            <Square className="w-3.5 h-3.5" /> Finalizar
+          </button>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -221,6 +234,14 @@ export const SessionActiveView: React.FC = () => {
           <span>Registrar nueva mano</span>
         </button>
       </div>
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        session={activeSession}
+        hands={recordedHands}
+      />
     </div>
   );
 };
