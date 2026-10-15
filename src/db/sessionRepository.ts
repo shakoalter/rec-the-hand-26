@@ -32,7 +32,15 @@ export const sessionRepository = {
     return await db.hands.where('sessionId').equals(sessionId).sortBy('handNumber');
   },
 
+  async getHandById(id: string): Promise<RecordedHand | undefined> {
+    return await db.hands.get(id);
+  },
+
   async saveHand(hand: RecordedHand): Promise<void> {
     await db.hands.put(hand);
+  },
+
+  async deleteHand(id: string): Promise<void> {
+    await db.hands.delete(id);
   }
 };

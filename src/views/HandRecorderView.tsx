@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Eye, CheckCircle2 } from 'lucide-react';
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
 import { ActionConsole } from '../components/poker/ActionConsole';
 import { CommunityCardsPicker } from '../components/poker/CommunityCardsPicker';
 import { FlopActionConsole } from '../components/poker/FlopActionConsole';
+import { HandReviewView } from './HandReviewView';
 import { useHandStore } from '../stores/handStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { ActionType, HandStreet } from '../types/poker';
@@ -72,12 +73,16 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     } else if (currentStep === 2) {
       setStep(3);
       setStreet('flop');
+    } else if (currentStep === 3) {
+      setStep(4);
     }
   };
 
   const handlePrevStep = () => {
     triggerHaptic();
-    if (currentStep === 3) {
+    if (currentStep === 4) {
+      setStep(flopCards.length > 0 ? 3 : 2);
+    } else if (currentStep === 3) {
       setStep(2);
       setStreet('preflop');
     } else if (currentStep === 2) {
@@ -90,7 +95,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   const handleHeroPreflopAction = async (actionType: ActionType, amount?: number) => {
     addPreflopAction(heroPosition, true, actionType, amount);
 
-    // Si foldea en preflop, se guarda la mano automáticamente
+    // Si foldea en preflop, guardado rápido automático
     if (actionType === 'fold') {
       try {
         await saveHand('Hero fold preflop');
@@ -124,7 +129,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     }
   };
 
-  const handleCompleteHand = async () => {
+  const handleFinalSaveHand = async () => {
     try {
       await saveHand();
       triggerHaptic();
@@ -132,11 +137,30 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       setTimeout(() => {
         setSavedSuccess(false);
         resetHand();
+        onBackToSession();
       }, 1200);
     } catch (err) {
       console.error('Error al guardar mano:', err);
     }
   };
+
+  if (currentStep === 4) {
+    return (
+      <HandReviewView
+        handNumber={handNumber}
+        blinds={activeSession.blinds}
+        playerCount={activeSession.playerCount}
+        heroPosition={heroPosition}
+        heroCards={heroCards}
+        preflopActions={preflopActions}
+        flopCards={flopCards}
+        flopActions={flopActions}
+        onEdit={() => setStep(flopCards.length > 0 ? 3 : 2)}
+        onSave={handleFinalSaveHand}
+        onBack={handlePrevStep}
+      />
+    );
+  }
 
   return (
     <div className="relative min-h-[100dvh] bg-[#070C12] text-white flex flex-col justify-between overflow-x-hidden pt-safe pb-safe max-w-md mx-auto px-3.5">
@@ -199,7 +223,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         {currentStep === 2 && (
           /* PASO 2: Acción Preflop */
           <>
-            {/* Resumen de cartas y posición seleccionadas */}
             <div className="flex items-center justify-between bg-[#0C1522] border border-[#1E2E42] rounded-xl p-2.5">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400">Tu posición:</span>
@@ -257,7 +280,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         {currentStep === 3 && (
           /* PASO 3: Flop Comunitario y Acciones */
           <>
-            {/* Jugadores activos restantes */}
             <div className="flex flex-col gap-1.5">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Jugadores activos ({activePlayers.length})
@@ -279,7 +301,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               </div>
             </div>
 
-            {/* Selector de Calles (Street Tabs) */}
+            {/* Street Tabs */}
             <div className="grid grid-cols-4 gap-1.5 bg-[#0C1522] p-1 rounded-xl border border-[#1A293D]">
               {STREETS.map((st) => (
                 <button
@@ -302,7 +324,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               ))}
             </div>
 
-            {/* Selector de Cartas del Flop */}
             <CommunityCardsPicker
               flopCards={flopCards}
               onAddCard={addFlopCard}
@@ -311,14 +332,12 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               isCardInUse={isCardInUse}
             />
 
-            {/* Consola de Acciones del Flop */}
             <FlopActionConsole
               heroPosition={heroPosition}
               bbAmount={activeSession.blinds.bb}
               onHeroAction={handleHeroFlopAction}
             />
 
-            {/* Acciones del Flop Registradas */}
             {flopActions.length > 0 && (
               <div className="bg-[#0A111A] border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
@@ -359,12 +378,12 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleCompleteHand}
+              onClick={() => setStep(4)}
               disabled={preflopActions.length === 0}
               className="flex-1 h-14 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-sm rounded-2xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all disabled:opacity-40"
             >
-              <Check className="w-4 h-4" />
-              <span>Guardar Preflop</span>
+              <Eye className="w-4 h-4 text-slate-400" />
+              <span>Revisar</span>
             </button>
 
             <button
@@ -381,11 +400,11 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         {currentStep === 3 && (
           <button
             type="button"
-            onClick={handleCompleteHand}
+            onClick={() => setStep(4)}
             className="w-full h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-lg rounded-2xl shadow-neon-emerald flex items-center justify-center gap-2 transition-all"
           >
-            <Check className="w-5 h-5" />
-            <span>Guardar mano con Flop</span>
+            <Eye className="w-5 h-5" />
+            <span>Revisar y Guardar</span>
           </button>
         )}
       </div>

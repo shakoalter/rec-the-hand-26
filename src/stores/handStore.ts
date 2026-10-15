@@ -6,7 +6,7 @@ import { sessionRepository } from '../db/sessionRepository';
 interface HandState {
   sessionId: string | null;
   handNumber: number;
-  currentStep: 1 | 2 | 3; // 1: Posición y Mano, 2: Acción Preflop, 3: Flop Comunitario y Acciones
+  currentStep: 1 | 2 | 3 | 4; // 1: Posición y Mano, 2: Acción Preflop, 3: Flop, 4: Revisar Mano
   currentStreet: HandStreet;
   heroPosition: TablePosition;
   dealerPosition: TablePosition;
@@ -18,7 +18,7 @@ interface HandState {
 
   // Acciones
   initHand: (sessionId: string, currentStack: number, defaultHeroPos?: TablePosition) => Promise<void>;
-  setStep: (step: 1 | 2 | 3) => void;
+  setStep: (step: 1 | 2 | 3 | 4) => void;
   setStreet: (street: HandStreet) => void;
   setHeroPosition: (pos: TablePosition) => void;
   setDealerPosition: (pos: TablePosition) => void;
