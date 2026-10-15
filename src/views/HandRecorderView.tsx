@@ -54,7 +54,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   } = useHandStore();
 
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [heroAction, setHeroAction] = useState<ActionType | null>(null);
   const [raiseAmount, setRaiseAmount] = useState<number>(4000);
 
   if (!activeSession) return null;
@@ -69,67 +68,47 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   const actionOrder = getPreflopActionOrder(activeSession.playerCount);
   const activePlayers = getActivePlayersForFlop(allPositions);
 
-  // Inicializar estado individual de acciones por asiento
+  // Índice del turno actual en la secuencia preflop (comienza en UTG = 0)
+  const [turnIndex, setTurnIndex] = useState<number>(0);
+  const currentTurnPosition = actionOrder[turnIndex] || heroPosition;
+  const isHeroTurn = currentTurnPosition === heroPosition;
+  const heroIndex = actionOrder.indexOf(heroPosition);
+
+  // Inicializar estado de acciones por asiento
   const [seatActions, setSeatActions] = useState<Record<TablePosition, SeatActionState>>(() => {
     const initial: Record<string, SeatActionState> = {};
     actionOrder.forEach((pos) => {
       initial[pos] = {
         position: pos,
         isHero: pos === heroPosition,
-        actionType: 'fold'
+        actionType: 'fold',
+        hasActed: false
       };
     });
     return initial as Record<TablePosition, SeatActionState>;
   });
 
-  // Tocar una píldora de asiento cicla: fold -> limp -> call -> raise -> fold
-  const handleToggleSeatAction = (pos: TablePosition) => {
-    setSeatActions((prev) => {
-      const current = prev[pos] || { position: pos, isHero: pos === heroPosition, actionType: 'fold' };
-      let nextType: ActionType = 'limp';
-      let nextAmount: number | undefined = undefined;
+  // Manejar acción del jugador en turno (sea un Rival o sea Hero)
+  const handleActionSelect = (action: ActionType, amount?: number) => {
+    const actingPos = currentTurnPosition;
+    const isHero = actingPos === heroPosition;
 
-      if (current.actionType === 'fold') {
-        nextType = 'limp';
-        nextAmount = activeSession.blinds.bb;
-      } else if (current.actionType === 'limp') {
-        nextType = 'raise';
-        nextAmount = raiseAmount;
-      } else if (current.actionType === 'raise') {
-        nextType = 'call';
-        nextAmount = raiseAmount;
-      } else {
-        nextType = 'fold';
-      }
-
-      return {
-        ...prev,
-        [pos]: {
-          ...current,
-          actionType: nextType,
-          amount: nextAmount
-        }
-      };
-    });
-  };
-
-  // Manejar acción de Hero desde la consola inferior
-  const handleHeroActionSelect = (action: ActionType, amount?: number) => {
-    setHeroAction(action);
+    // Actualizar asiento actual
     setSeatActions((prev) => ({
       ...prev,
-      [heroPosition]: {
-        position: heroPosition,
-        isHero: true,
+      [actingPos]: {
+        position: actingPos,
+        isHero,
         actionType: action,
-        amount: action === 'raise' ? (amount || raiseAmount) : (action === 'call' ? activeSession.blinds.bb : undefined)
+        amount: action === 'raise' ? (amount || raiseAmount) : (action === 'call' || action === 'limp' ? activeSession.blinds.bb : undefined),
+        hasActed: true
       }
     }));
 
-    addPreflopAction(heroPosition, true, action, amount);
+    addPreflopAction(actingPos, isHero, action, amount);
 
-    // Si foldea, persistencia ultrarrápida automática
-    if (action === 'fold') {
+    // Si es Hero y foldea -> autoguardado ultrarrápido
+    if (isHero && action === 'fold') {
       saveHand('Hero fold preflop').then(() => {
         triggerHaptic();
         setSavedSuccess(true);
@@ -139,7 +118,35 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
           onBackToSession();
         }, 1200);
       });
+      return;
     }
+
+    // Avanzar automáticamente el turno al siguiente jugador si quedan asientos
+    if (turnIndex < actionOrder.length - 1) {
+      setTurnIndex(turnIndex + 1);
+    }
+  };
+
+  // Atajo: Folds hasta Hero en 1 toque
+  const handleFastForwardToHero = () => {
+    if (heroIndex <= turnIndex) return;
+
+    setSeatActions((prev) => {
+      const updated = { ...prev };
+      for (let i = turnIndex; i < heroIndex; i++) {
+        const pos = actionOrder[i];
+        updated[pos] = {
+          position: pos,
+          isHero: false,
+          actionType: 'fold',
+          hasActed: true
+        };
+        addPreflopAction(pos, false, 'fold');
+      }
+      return updated;
+    });
+
+    setTurnIndex(heroIndex);
   };
 
   const handleNextStep = () => {
@@ -147,6 +154,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     if (currentStep === 1) {
       setStep(2);
       setStreet('preflop');
+      setTurnIndex(0); // Comienza en UTG
     } else if (currentStep === 2) {
       setStep(3);
       setStreet('flop');
@@ -203,6 +211,9 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     }
   };
 
+  // Saber si todos los asientos ya actuaron al menos una vez
+  const allActed = actionOrder.every((pos) => seatActions[pos]?.hasActed);
+
   if (currentStep === 4) {
     return (
       <HandReviewView
@@ -239,7 +250,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
           className="w-9 h-9 rounded-xl bg-transparent flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-all"
           aria-label="Volver"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4" />
         </button>
 
         <div className="text-center">
@@ -258,33 +269,35 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         </button>
       </header>
 
-      {/* Barra Horizontal Superior de Posiciones ([UTG] [UTG+1] ... [HERO]) */}
+      {/* Barra Horizontal Superior de Posiciones */}
       <div className="flex items-center gap-1.5 overflow-x-auto py-2 no-scrollbar border-b border-slate-800/60">
-        {actionOrder.map((pos) => {
+        {actionOrder.map((pos, idx) => {
           const isHero = pos === heroPosition;
+          const isCurrent = idx === turnIndex;
+          const acted = seatActions[pos]?.hasActed;
           return (
             <button
               key={pos}
               type="button"
               onClick={() => {
                 triggerHaptic();
-                setHeroPosition(pos);
+                setTurnIndex(idx);
               }}
               className={clsx(
                 'h-8 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center flex-shrink-0 select-none active:scale-95',
-                isHero
-                  ? 'bg-poker-emerald text-white shadow-neon-emerald ring-1 ring-white/30'
-                  : 'bg-[#15202E] text-slate-300 border border-[#223348] hover:border-slate-500'
+                isCurrent
+                  ? 'bg-blue-600 text-white ring-2 ring-white shadow-md'
+                  : isHero
+                    ? 'bg-[#0E2A1E] border border-poker-emerald text-poker-emerald shadow-neon-emerald'
+                    : acted
+                      ? 'bg-[#182638] text-slate-300'
+                      : 'bg-[#101924] text-slate-500 border border-[#1E2E42]'
               )}
             >
-              {pos}
+              {isHero ? `HERO` : pos}
             </button>
           );
         })}
-        {/* Píldora HERO Verde Destacada */}
-        <div className="h-8 px-3 rounded-lg bg-poker-emerald text-white text-xs font-black flex items-center justify-center shadow-neon-emerald flex-shrink-0">
-          HERO
-        </div>
       </div>
 
       {/* Contenido Principal */}
@@ -311,13 +324,17 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         )}
 
         {currentStep === 2 && (
-          /* PASO 2: Acción Preflop idéntico a la Imagen 2 */
+          /* PASO 2: Acción Preflop por turnos */
           <div className="flex flex-col gap-2">
             <PreflopActionTimeline
               positions={actionOrder}
               heroPosition={heroPosition}
+              currentTurnPosition={currentTurnPosition}
               seatActions={seatActions}
-              onToggleSeatAction={handleToggleSeatAction}
+              onSelectTurn={(pos) => {
+                const idx = actionOrder.indexOf(pos);
+                if (idx !== -1) setTurnIndex(idx);
+              }}
             />
           </div>
         )}
@@ -382,7 +399,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         )}
       </div>
 
-      {/* Zona Inferior Anclada: Consola en Paso 2 o Botón Siguiente en Paso 1 */}
+      {/* Zona Inferior Anclada */}
       <div className="pt-1 pb-1">
         {currentStep === 1 && (
           <button
@@ -396,13 +413,40 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         )}
 
         {currentStep === 2 && (
-          <ActionConsole
-            heroAction={heroAction}
-            raiseAmount={raiseAmount}
-            onHeroActionSelect={handleHeroActionSelect}
-            onRaiseAmountChange={setRaiseAmount}
-            bbAmount={activeSession.blinds.bb}
-          />
+          <div className="flex flex-col gap-2">
+            <ActionConsole
+              currentPosition={currentTurnPosition}
+              isHero={isHeroTurn}
+              raiseAmount={raiseAmount}
+              onActionSelect={handleActionSelect}
+              onRaiseAmountChange={setRaiseAmount}
+              onFastForwardToHero={handleFastForwardToHero}
+              canFastForwardToHero={heroIndex > turnIndex}
+              bbAmount={activeSession.blinds.bb}
+            />
+
+            {/* Botón flotante para avanzar al Flop o Revisar cuando la acción preflop termina */}
+            {allActed && (
+              <div className="flex items-center gap-2 pt-1 animate-in fade-in duration-150">
+                <button
+                  type="button"
+                  onClick={() => setStep(4)}
+                  className="flex-1 h-12 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <span>Revisar mano</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="flex-1 h-12 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-sm rounded-xl shadow-neon-emerald flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <span>Ir al Flop</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
         {currentStep === 3 && (

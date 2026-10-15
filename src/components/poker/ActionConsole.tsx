@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { ActionType } from '../../types/poker';
+import { ActionType, TablePosition } from '../../types/poker';
 import { clsx } from 'clsx';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, FastForward } from 'lucide-react';
 
 interface ActionConsoleProps {
-  heroAction: ActionType | null;
+  currentPosition: TablePosition;
+  isHero: boolean;
   raiseAmount: number;
-  onHeroActionSelect: (action: ActionType, amount?: number) => void;
+  onActionSelect: (action: ActionType, amount?: number) => void;
   onRaiseAmountChange: (amount: number) => void;
+  onFastForwardToHero?: () => void;
+  canFastForwardToHero?: boolean;
   bbAmount: number;
 }
 
@@ -21,10 +24,13 @@ const PRESETS = [
 ];
 
 export const ActionConsole: React.FC<ActionConsoleProps> = ({
-  heroAction,
+  currentPosition,
+  isHero,
   raiseAmount,
-  onHeroActionSelect,
+  onActionSelect,
   onRaiseAmountChange,
+  onFastForwardToHero,
+  canFastForwardToHero = false,
   bbAmount
 }) => {
   const [selectedPreset, setSelectedPreset] = useState<number>(raiseAmount);
@@ -38,13 +44,13 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
   const handleAction = (action: ActionType) => {
     triggerHaptic();
     if (action === 'raise') {
-      onHeroActionSelect('raise', raiseAmount);
+      onActionSelect('raise', raiseAmount);
     } else if (action === 'call') {
-      onHeroActionSelect('call', bbAmount);
+      onActionSelect('call', bbAmount);
     } else if (action === 'limp') {
-      onHeroActionSelect('limp', bbAmount);
+      onActionSelect('limp', bbAmount);
     } else {
-      onHeroActionSelect('fold');
+      onActionSelect('fold');
     }
   };
 
@@ -52,9 +58,6 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
     triggerHaptic();
     setSelectedPreset(amount);
     onRaiseAmountChange(amount);
-    if (heroAction === 'raise') {
-      onHeroActionSelect('raise', amount);
-    }
   };
 
   const handleDec = () => {
@@ -72,26 +75,43 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2.5 w-full bg-[#09111C]/95 border-t border-[#1C2C3F] pt-2 pb-1 select-none">
-      {/* Badge HERO Verde idéntico al mockup */}
-      <div className="self-start">
-        <div className="px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-1 shadow-neon-emerald">
-          HERO
-        </div>
+    <div className="flex flex-col gap-2 w-full bg-[#09111C]/95 border-t border-[#1C2C3F] pt-2 pb-1 select-none">
+      {/* Barra de Turno y Atajo */}
+      <div className="flex items-center justify-between">
+        {isHero ? (
+          <div className="px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-1.5 shadow-neon-emerald">
+            <span className="w-2 h-2 rounded-full bg-poker-emerald animate-pulse" />
+            HERO ({currentPosition}) — TU TURNO
+          </div>
+        ) : (
+          <div className="px-3 py-1 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-blue-400" />
+            TURNO: {currentPosition} (Rival)
+          </div>
+        )}
+
+        {canFastForwardToHero && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic();
+              onFastForwardToHero?.();
+            }}
+            className="px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-1 active:scale-95 transition-all shadow-sm"
+          >
+            <FastForward className="w-3.5 h-3.5" />
+            <span>Folds hasta Hero</span>
+          </button>
+        )}
       </div>
 
-      {/* 4 Botones Táctiles Grandes de Acción idénticos al mockup */}
+      {/* 4 Botones Táctiles Grandes de Acción */}
       <div className="grid grid-cols-4 gap-2">
         {/* FOLD */}
         <button
           type="button"
           onClick={() => handleAction('fold')}
-          className={clsx(
-            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center shadow-md',
-            heroAction === 'fold'
-              ? 'bg-slate-700 text-white ring-2 ring-slate-400'
-              : 'bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60'
-          )}
+          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60 shadow-md"
         >
           Fold
         </button>
@@ -100,12 +120,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleAction('limp')}
-          className={clsx(
-            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
-            heroAction === 'limp'
-              ? 'bg-[#00C853] ring-2 ring-emerald-300 shadow-neon-emerald'
-              : 'bg-[#10B981] hover:bg-[#059669]'
-          )}
+          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white bg-[#10B981] hover:bg-[#059669] shadow-md"
         >
           Limp
         </button>
@@ -114,12 +129,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleAction('call')}
-          className={clsx(
-            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
-            heroAction === 'call'
-              ? 'bg-[#0066FF] ring-2 ring-blue-300 shadow-lg'
-              : 'bg-[#1D72FE] hover:bg-[#155FD6]'
-          )}
+          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white bg-[#1D72FE] hover:bg-[#155FD6] shadow-md"
         >
           Call
         </button>
@@ -128,18 +138,13 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleAction('raise')}
-          className={clsx(
-            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
-            heroAction === 'raise'
-              ? 'bg-[#E11D48] ring-2 ring-red-300 shadow-lg'
-              : 'bg-[#EF4444] hover:bg-[#DC2626]'
-          )}
+          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-md"
         >
           Raise
         </button>
       </div>
 
-      {/* Fila de Presets (2K, 3K, 4K [azul activo], 5K, 8K, 10K) */}
+      {/* Fila de Presets (2K, 3K, 4K, 5K, 8K, 10K) */}
       <div className="grid grid-cols-6 gap-1.5 pt-0.5">
         {PRESETS.map((p) => {
           const isActive = selectedPreset === p.amount;
