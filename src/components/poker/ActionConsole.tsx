@@ -1,141 +1,124 @@
 import React, { useState } from 'react';
-import { TablePosition, ActionType } from '../../types/poker';
+import { ActionType } from '../../types/poker';
 import { clsx } from 'clsx';
-import { Minus, Plus, CheckCircle2 } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 
 interface ActionConsoleProps {
-  heroPosition: TablePosition;
-  playerCount: number;
+  heroAction: ActionType | null;
+  raiseAmount: number;
+  onHeroActionSelect: (action: ActionType, amount?: number) => void;
+  onRaiseAmountChange: (amount: number) => void;
   bbAmount: number;
-  onHeroAction: (actionType: ActionType, amount?: number) => void;
-  onPriorContextSelect?: (contextName: string) => void;
 }
 
+const PRESETS = [
+  { label: '2K', amount: 2000 },
+  { label: '3K', amount: 3000 },
+  { label: '4K', amount: 4000 },
+  { label: '5K', amount: 5000 },
+  { label: '8K', amount: 8000 },
+  { label: '10K', amount: 10000 },
+];
+
 export const ActionConsole: React.FC<ActionConsoleProps> = ({
-  heroPosition,
-  bbAmount,
-  onHeroAction
+  heroAction,
+  raiseAmount,
+  onHeroActionSelect,
+  onRaiseAmountChange,
+  bbAmount
 }) => {
-  const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
-  const [raiseAmount, setRaiseAmount] = useState<number>(bbAmount * 3);
-  const [priorContext, setPriorContext] = useState<string>('unopened');
+  const [selectedPreset, setSelectedPreset] = useState<number>(raiseAmount);
 
   const triggerHaptic = () => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(15);
+      navigator.vibrate(12);
     }
   };
 
-  // Presets adaptados al valor de la Big Blind (ej: 2k, 3k, 4k, 5k, 8k, 10k para BB=1000)
-  const presets = [
-    { label: `${(bbAmount * 2) / 1000}K`, amount: bbAmount * 2 },
-    { label: `${(bbAmount * 3) / 1000}K`, amount: bbAmount * 3 },
-    { label: `${(bbAmount * 4) / 1000}K`, amount: bbAmount * 4 },
-    { label: `${(bbAmount * 5) / 1000}K`, amount: bbAmount * 5 },
-    { label: `${(bbAmount * 8) / 1000}K`, amount: bbAmount * 8 },
-    { label: `${(bbAmount * 10) / 1000}K`, amount: bbAmount * 10 },
-  ];
-
-  const handleActionClick = (action: ActionType) => {
+  const handleAction = (action: ActionType) => {
     triggerHaptic();
-    setSelectedAction(action);
-    if (action === 'fold') {
-      onHeroAction('fold');
+    if (action === 'raise') {
+      onHeroActionSelect('raise', raiseAmount);
     } else if (action === 'call') {
-      onHeroAction('call', bbAmount);
-    } else if (action === 'limp' || action === 'check') {
-      onHeroAction(heroPosition === 'BB' && priorContext === 'unopened' ? 'check' : 'limp', bbAmount);
+      onHeroActionSelect('call', bbAmount);
+    } else if (action === 'limp') {
+      onHeroActionSelect('limp', bbAmount);
+    } else {
+      onHeroActionSelect('fold');
     }
   };
 
-  const handleConfirmRaise = () => {
+  const handlePresetSelect = (amount: number) => {
     triggerHaptic();
-    onHeroAction('raise', raiseAmount);
+    setSelectedPreset(amount);
+    onRaiseAmountChange(amount);
+    if (heroAction === 'raise') {
+      onHeroActionSelect('raise', amount);
+    }
+  };
+
+  const handleDec = () => {
+    triggerHaptic();
+    const next = Math.max(bbAmount * 2, raiseAmount - 500);
+    onRaiseAmountChange(next);
+    setSelectedPreset(next);
+  };
+
+  const handleInc = () => {
+    triggerHaptic();
+    const next = raiseAmount + 500;
+    onRaiseAmountChange(next);
+    setSelectedPreset(next);
   };
 
   return (
-    <div className="flex flex-col gap-3.5 bg-[#0A121D]/95 border border-[#1C2C3F] rounded-2xl p-4 shadow-2xl">
-      {/* Contexto previo rápido (Toque único para definir qué pasó antes de Hero) */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-          Acción previa a Hero
-        </span>
-        <div className="grid grid-cols-4 gap-1.5">
-          {[
-            { id: 'unopened', label: 'Sin subidas' },
-            { id: '1limp', label: '1 Limper' },
-            { id: '2limps', label: '2+ Limpers' },
-            { id: 'open_raise', label: 'Open Raise' },
-          ].map((ctx) => (
-            <button
-              key={ctx.id}
-              type="button"
-              onClick={() => {
-                triggerHaptic();
-                setPriorContext(ctx.id);
-              }}
-              className={clsx(
-                'py-1.5 px-2 rounded-lg text-xs font-semibold transition-all select-none active:scale-95 text-center',
-                priorContext === ctx.id
-                  ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 shadow-sm'
-                  : 'bg-[#121E2C] text-slate-400 border border-[#1E2E42] hover:text-white'
-              )}
-            >
-              {ctx.label}
-            </button>
-          ))}
+    <div className="flex flex-col gap-2.5 w-full bg-[#09111C]/95 border-t border-[#1C2C3F] pt-2 pb-1 select-none">
+      {/* Badge HERO Verde idéntico al mockup */}
+      <div className="self-start">
+        <div className="px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-1 shadow-neon-emerald">
+          HERO
         </div>
       </div>
 
-      {/* Hero Action Header */}
-      <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
-        <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-poker-emerald font-black text-xs shadow-neon-emerald">
-          H
-        </div>
-        <span className="text-sm font-bold text-white tracking-wide">
-          Decisión de Hero ({heroPosition})
-        </span>
-      </div>
-
-      {/* 4 Cardinal Action Buttons */}
+      {/* 4 Botones Táctiles Grandes de Acción idénticos al mockup */}
       <div className="grid grid-cols-4 gap-2">
         {/* FOLD */}
         <button
           type="button"
-          onClick={() => handleActionClick('fold')}
+          onClick={() => handleAction('fold')}
           className={clsx(
-            'h-13 rounded-xl font-bold text-base transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
-            selectedAction === 'fold'
+            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center shadow-md',
+            heroAction === 'fold'
               ? 'bg-slate-700 text-white ring-2 ring-slate-400'
-              : 'bg-[#1E293B] text-slate-200 border border-slate-700/60 hover:bg-slate-700'
+              : 'bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60'
           )}
         >
           Fold
         </button>
 
-        {/* LIMP / CHECK */}
+        {/* LIMP */}
         <button
           type="button"
-          onClick={() => handleActionClick(heroPosition === 'BB' && priorContext === 'unopened' ? 'check' : 'limp')}
+          onClick={() => handleAction('limp')}
           className={clsx(
-            'h-13 rounded-xl font-bold text-base transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
-            selectedAction === 'limp' || selectedAction === 'check'
-              ? 'bg-emerald-600 text-white ring-2 ring-emerald-300 shadow-neon-emerald'
-              : 'bg-[#064E3B] text-emerald-100 border border-emerald-600/50 hover:bg-emerald-700'
+            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
+            heroAction === 'limp'
+              ? 'bg-[#00C853] ring-2 ring-emerald-300 shadow-neon-emerald'
+              : 'bg-[#10B981] hover:bg-[#059669]'
           )}
         >
-          {heroPosition === 'BB' && priorContext === 'unopened' ? 'Check' : 'Limp'}
+          Limp
         </button>
 
         {/* CALL */}
         <button
           type="button"
-          onClick={() => handleActionClick('call')}
+          onClick={() => handleAction('call')}
           className={clsx(
-            'h-13 rounded-xl font-bold text-base transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
-            selectedAction === 'call'
-              ? 'bg-blue-600 text-white ring-2 ring-blue-300'
-              : 'bg-[#1E3A8A] text-blue-100 border border-blue-600/50 hover:bg-blue-700'
+            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
+            heroAction === 'call'
+              ? 'bg-[#0066FF] ring-2 ring-blue-300 shadow-lg'
+              : 'bg-[#1D72FE] hover:bg-[#155FD6]'
           )}
         >
           Call
@@ -144,94 +127,70 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         {/* RAISE */}
         <button
           type="button"
-          onClick={() => {
-            triggerHaptic();
-            setSelectedAction('raise');
-          }}
+          onClick={() => handleAction('raise')}
           className={clsx(
-            'h-13 rounded-xl font-bold text-base transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
-            selectedAction === 'raise'
-              ? 'bg-red-600 text-white ring-2 ring-red-300 shadow-lg'
-              : 'bg-[#991B1B] text-red-100 border border-red-600/50 hover:bg-red-700'
+            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
+            heroAction === 'raise'
+              ? 'bg-[#E11D48] ring-2 ring-red-300 shadow-lg'
+              : 'bg-[#EF4444] hover:bg-[#DC2626]'
           )}
         >
           Raise
         </button>
       </div>
 
-      {/* Sizing Panel (Visible when Raise is active) */}
-      {selectedAction === 'raise' && (
-        <div className="flex flex-col gap-2.5 pt-2 border-t border-slate-800/80 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold">Tamaño de subida</span>
-            <span className="text-white font-bold text-sm text-poker-emerald">
-              $ {raiseAmount.toLocaleString('es-AR')}
-            </span>
-          </div>
-
-          {/* Quick presets */}
-          <div className="grid grid-cols-6 gap-1.5">
-            {presets.map((p) => (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => {
-                  triggerHaptic();
-                  setRaiseAmount(p.amount);
-                }}
-                className={clsx(
-                  'h-9 rounded-lg font-bold text-xs transition-all active:scale-95 flex items-center justify-center',
-                  raiseAmount === p.amount
-                    ? 'bg-red-600 text-white shadow-md border border-red-400'
-                    : 'bg-[#15202E] text-slate-300 border border-[#223348] hover:border-slate-500'
-                )}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Stepper fino y botón de confirmación de Raise */}
-          <div className="flex items-center gap-2 pt-1">
-            <div className="flex-1 flex items-center justify-between bg-[#131E2C] border border-[#233347] rounded-xl h-11 px-2">
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic();
-                  if (raiseAmount - bbAmount >= bbAmount * 2) {
-                    setRaiseAmount(raiseAmount - bbAmount);
-                  }
-                }}
-                className="w-7 h-7 rounded-lg bg-[#1B293A] text-slate-300 flex items-center justify-center active:scale-90"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span className="font-bold text-sm text-white">
-                ${raiseAmount.toLocaleString('es-AR')}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic();
-                  setRaiseAmount(raiseAmount + bbAmount);
-                }}
-                className="w-7 h-7 rounded-lg bg-[#1B293A] text-slate-300 flex items-center justify-center active:scale-90"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
+      {/* Fila de Presets (2K, 3K, 4K [azul activo], 5K, 8K, 10K) */}
+      <div className="grid grid-cols-6 gap-1.5 pt-0.5">
+        {PRESETS.map((p) => {
+          const isActive = selectedPreset === p.amount;
+          return (
             <button
+              key={p.label}
               type="button"
-              onClick={handleConfirmRaise}
-              className="h-11 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:brightness-110 active:scale-95 text-white font-bold text-sm rounded-xl flex items-center gap-1.5 shadow-lg"
+              onClick={() => handlePresetSelect(p.amount)}
+              className={clsx(
+                'h-11 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center select-none',
+                isActive
+                  ? 'bg-[#1D72FE] text-white shadow-md border border-blue-400'
+                  : 'bg-[#131E2C] text-slate-300 border border-[#233347] hover:border-slate-500'
+              )}
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Confirmar</span>
+              {p.label}
             </button>
-          </div>
+          );
+        })}
+      </div>
+
+      {/* Fila "Personalizado" con Stepper [-] 4.000 [+] */}
+      <div className="flex items-center justify-between bg-[#0F1824] border border-[#1E2E42] rounded-2xl h-13 px-4 mt-0.5">
+        <span className="text-sm font-semibold text-slate-300">
+          Personalizado
+        </span>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleDec}
+            className="w-9 h-9 rounded-xl bg-[#172536] hover:bg-[#203146] active:scale-90 text-slate-200 flex items-center justify-center font-bold"
+            aria-label="Disminuir"
+          >
+            <Minus className="w-4 h-4" />
+          </button>
+
+          <span className="text-base font-extrabold text-white min-w-[70px] text-center select-text">
+            {raiseAmount.toLocaleString('es-AR')}
+          </span>
+
+          <button
+            type="button"
+            onClick={handleInc}
+            className="w-9 h-9 rounded-xl bg-[#172536] hover:bg-[#203146] active:scale-90 text-slate-200 flex items-center justify-center font-bold"
+            aria-label="Aumentar"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
