@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, MoreVertical, CheckCircle2 } from 'lucide-react'
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
 import { ActionConsole } from '../components/poker/ActionConsole';
-import { PreflopActionTimeline, SeatActionState } from '../components/poker/PreflopActionTimeline';
+import { PreflopActionTimeline } from '../components/poker/PreflopActionTimeline';
 import { CommunityCardsPicker } from '../components/poker/CommunityCardsPicker';
 import { FlopActionConsole } from '../components/poker/FlopActionConsole';
 import { HandReviewView } from './HandReviewView';
@@ -11,6 +11,7 @@ import { useHandStore } from '../stores/handStore';
 import { useSessionStore } from '../stores/sessionStore';
 import { ActionType, HandStreet, TablePosition } from '../types/poker';
 import { getPositionsForPlayerCount, getPreflopActionOrder } from '../core/positionEngine';
+import { bettingEngine, BettingPlayerState, BettingRoundStatus } from '../core/bettingEngine';
 import { clsx } from 'clsx';
 
 interface HandRecorderViewProps {
@@ -69,73 +70,86 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   const actionOrder = getPreflopActionOrder(activeSession.playerCount);
   const activePlayers = getActivePlayersForFlop(allPositions);
 
-  // Índice del turno actual en la secuencia preflop (comienza en UTG = 0)
-  const [turnIndex, setTurnIndex] = useState<number>(0);
-  const currentTurnPosition = actionOrder[turnIndex] || heroPosition;
+  // Asientos y estado de apuestas con bettingEngine
+  const [seatStates, setSeatStates] = useState<Record<TablePosition, BettingPlayerState>>(() =>
+    bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds)
+  );
+
+  // Turno actual: TablePosition o null cuando la ronda preflop ha concluido
+  const [currentTurnPosition, setCurrentTurnPosition] = useState<TablePosition | null>(actionOrder[0] || heroPosition);
   const isHeroTurn = currentTurnPosition === heroPosition;
   const heroIndex = actionOrder.indexOf(heroPosition);
+  const currentTurnIndex = currentTurnPosition ? actionOrder.indexOf(currentTurnPosition) : -1;
 
-  // Inicializar y sincronizar reactivamente las acciones por asiento con heroPosition
-  const [seatActions, setSeatActions] = useState<Record<TablePosition, SeatActionState>>(() => {
-    const initial: Record<string, SeatActionState> = {};
-    actionOrder.forEach((pos) => {
-      initial[pos] = {
-        position: pos,
-        isHero: pos === heroPosition,
-        actionType: 'fold',
-        hasActed: false
-      };
-    });
-    return initial as Record<TablePosition, SeatActionState>;
+  // Estado general de la ronda
+  const [roundStatus, setRoundStatus] = useState<BettingRoundStatus>({
+    isRoundComplete: false,
+    isHandOver: false,
+    highestBet: activeSession.blinds.bb,
+    nextPositionToAct: actionOrder[0] || null,
+    activePlayersCount: actionOrder.length
   });
 
-  // Cada vez que Hero cambie de asiento en Paso 1, sincronizar la marca isHero
+  // Si cambia heroPosition en Paso 1, sincronizar la marca isHero sin reiniciar si no es necesario
   useEffect(() => {
-    setSeatActions((prev) => {
-      const updated = { ...prev };
-      actionOrder.forEach((pos) => {
-        if (!updated[pos]) {
-          updated[pos] = { position: pos, isHero: pos === heroPosition, actionType: 'fold', hasActed: false };
-        } else {
-          updated[pos] = { ...updated[pos], isHero: pos === heroPosition };
-        }
+    if (preflopActions.length === 0) {
+      const initial = bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds);
+      setSeatStates(initial);
+      setCurrentTurnPosition(actionOrder[0] || heroPosition);
+      setCurrentHighestBet(activeSession.blinds.bb);
+      setRaiseAmount(activeSession.blinds.bb * 2);
+      setRoundStatus({
+        isRoundComplete: false,
+        isHandOver: false,
+        highestBet: activeSession.blinds.bb,
+        nextPositionToAct: actionOrder[0] || null,
+        activePlayersCount: actionOrder.length
       });
-      return updated;
-    });
-  }, [heroPosition, actionOrder]);
+    } else {
+      setSeatStates((prev) => {
+        const updated = { ...prev };
+        actionOrder.forEach((pos) => {
+          if (updated[pos]) {
+            updated[pos] = { ...updated[pos], isHero: pos === heroPosition };
+          }
+        });
+        return updated;
+      });
+    }
+  }, [heroPosition, actionOrder, activeSession.blinds, preflopActions.length]);
 
   // Manejar acción del jugador en turno
   const handleActionSelect = (action: ActionType, amount?: number) => {
+    if (!currentTurnPosition) return;
     const actingPos = currentTurnPosition;
     const isHero = actingPos === heroPosition;
 
+    // 1. Aplicar la acción a través de bettingEngine
+    const { updatedSeats, newHighestBet } = bettingEngine.applyAction(
+      seatStates,
+      actingPos,
+      action,
+      amount,
+      currentHighestBet,
+      activeSession.blinds.bb
+    );
+
+    setSeatStates(updatedSeats);
+    setCurrentHighestBet(newHighestBet);
+
     let finalAmount = amount;
-    if (action === 'raise') {
-      finalAmount = amount || raiseAmount;
-      if (finalAmount > currentHighestBet) {
-        setCurrentHighestBet(finalAmount);
-        setRaiseAmount(finalAmount * 2); // Preparar siguiente 3-bet
-      }
+    if (action === 'raise' || action === '3bet' || action === '4bet') {
+      finalAmount = amount || newHighestBet;
+      setRaiseAmount(newHighestBet * 2);
     } else if (action === 'call') {
-      finalAmount = currentHighestBet;
+      finalAmount = newHighestBet;
     } else if (action === 'limp') {
       finalAmount = activeSession.blinds.bb;
     }
 
-    setSeatActions((prev) => ({
-      ...prev,
-      [actingPos]: {
-        position: actingPos,
-        isHero,
-        actionType: action,
-        amount: finalAmount,
-        hasActed: true
-      }
-    }));
-
     addPreflopAction(actingPos, isHero, action, finalAmount);
 
-    // Si es Hero y foldea -> autoguardado rápido
+    // 2. Si Hero foldea -> autoguardado rápido
     if (isHero && action === 'fold') {
       saveHand('Hero fold preflop').then(() => {
         triggerHaptic();
@@ -149,32 +163,77 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       return;
     }
 
-    // Avanzar automáticamente el turno al siguiente jugador si quedan asientos
-    if (turnIndex < actionOrder.length - 1) {
-      setTurnIndex(turnIndex + 1);
+    // 3. Evaluar el estado de la ronda de apuestas (re-apertura de turnos o cierre)
+    const evalStatus = bettingEngine.evaluateRound(
+      actionOrder,
+      updatedSeats,
+      actingPos,
+      newHighestBet
+    );
+    setRoundStatus(evalStatus);
+
+    if (evalStatus.isHandOver) {
+      // Todos foldearon ante la subida
+      if (evalStatus.winnerPosition === heroPosition) {
+        saveHand('Hero gana preflop (todos foldearon)').then(() => {
+          triggerHaptic();
+          setSavedSuccess(true);
+          setTimeout(() => {
+            setSavedSuccess(false);
+            resetHand();
+            onBackToSession();
+          }, 1400);
+        });
+      } else {
+        setCurrentTurnPosition(null);
+      }
+      return;
+    }
+
+    if (evalStatus.isRoundComplete) {
+      // Ronda terminada: todos los activos igualaron la apuesta más alta
+      setCurrentTurnPosition(null);
+    } else {
+      // Ronda sigue activa: pasar el turno al siguiente jugador que debe hablar (ej: villano ante un 3-bet)
+      setCurrentTurnPosition(evalStatus.nextPositionToAct);
     }
   };
 
   // Atajo: Folds hasta Hero en 1 toque
   const handleFastForwardToHero = () => {
-    if (heroIndex <= turnIndex) return;
+    if (!currentTurnPosition || currentTurnIndex === -1 || heroIndex <= currentTurnIndex) return;
 
-    setSeatActions((prev) => {
-      const updated = { ...prev };
-      for (let i = turnIndex; i < heroIndex; i++) {
-        const pos = actionOrder[i];
-        updated[pos] = {
-          position: pos,
-          isHero: false,
-          actionType: 'fold',
-          hasActed: true
-        };
+    let tempSeats = { ...seatStates };
+    let tempHighest = currentHighestBet;
+
+    for (let i = currentTurnIndex; i < heroIndex; i++) {
+      const pos = actionOrder[i];
+      if (tempSeats[pos] && tempSeats[pos].status === 'active') {
+        const res = bettingEngine.applyAction(
+          tempSeats,
+          pos,
+          'fold',
+          undefined,
+          tempHighest,
+          activeSession.blinds.bb
+        );
+        tempSeats = res.updatedSeats;
+        tempHighest = res.newHighestBet;
         addPreflopAction(pos, false, 'fold');
       }
-      return updated;
-    });
+    }
 
-    setTurnIndex(heroIndex);
+    setSeatStates(tempSeats);
+    setCurrentHighestBet(tempHighest);
+    setCurrentTurnPosition(heroPosition);
+
+    const evalStatus = bettingEngine.evaluateRound(
+      actionOrder,
+      tempSeats,
+      heroPosition,
+      tempHighest
+    );
+    setRoundStatus(evalStatus);
   };
 
   const handleNextStep = () => {
@@ -182,8 +241,18 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     if (currentStep === 1) {
       setStep(2);
       setStreet('preflop');
-      setTurnIndex(0); // Comienza en UTG
+      const initial = bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds);
+      setSeatStates(initial);
+      setCurrentTurnPosition(actionOrder[0] || heroPosition);
       setCurrentHighestBet(activeSession.blinds.bb);
+      setRaiseAmount(activeSession.blinds.bb * 2);
+      setRoundStatus({
+        isRoundComplete: false,
+        isHandOver: false,
+        highestBet: activeSession.blinds.bb,
+        nextPositionToAct: actionOrder[0] || null,
+        activePlayersCount: actionOrder.length
+      });
     } else if (currentStep === 2) {
       setStep(3);
       setStreet('flop');
@@ -240,8 +309,8 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     }
   };
 
-  // Saber si todos los asientos ya actuaron al menos una vez
-  const allActed = actionOrder.every((pos) => seatActions[pos]?.hasActed);
+  // Saber si la ronda preflop está completada
+  const isPreflopComplete = roundStatus.isRoundComplete;
 
   if (currentStep === 4) {
     return (
@@ -300,17 +369,20 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
 
       {/* Barra Horizontal Superior de Posiciones: Exclusivamente los asientos reales sin duplicados */}
       <div className="flex items-center gap-1.5 overflow-x-auto py-2 no-scrollbar border-b border-slate-800/60">
-        {actionOrder.map((pos, idx) => {
+        {actionOrder.map((pos) => {
           const isHero = pos === heroPosition;
-          const isCurrent = idx === turnIndex;
-          const acted = seatActions[pos]?.hasActed;
+          const isCurrent = pos === currentTurnPosition;
+          const playerState = seatStates[pos];
+          const isFolded = playerState?.status === 'folded';
+          const acted = playerState?.hasActedInRound;
+
           return (
             <button
               key={pos}
               type="button"
               onClick={() => {
                 triggerHaptic();
-                setTurnIndex(idx);
+                setCurrentTurnPosition(pos);
               }}
               className={clsx(
                 'h-8 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center flex-shrink-0 select-none active:scale-95',
@@ -318,9 +390,11 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                   ? 'bg-blue-600 text-white ring-2 ring-white shadow-md'
                   : isHero
                     ? 'bg-[#0E2A1E] border border-poker-emerald text-poker-emerald shadow-neon-emerald'
-                    : acted
-                      ? 'bg-[#182638] text-slate-300'
-                      : 'bg-[#101924] text-slate-500 border border-[#1E2E42]'
+                    : isFolded
+                      ? 'bg-[#121A24] text-slate-600 opacity-50'
+                      : acted
+                        ? 'bg-[#182638] text-slate-300'
+                        : 'bg-[#101924] text-slate-500 border border-[#1E2E42]'
               )}
             >
               {isHero ? `HERO (${pos})` : pos}
@@ -359,10 +433,9 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               positions={actionOrder}
               heroPosition={heroPosition}
               currentTurnPosition={currentTurnPosition}
-              seatActions={seatActions}
+              seatStates={seatStates}
               onSelectTurn={(pos) => {
-                const idx = actionOrder.indexOf(pos);
-                if (idx !== -1) setTurnIndex(idx);
+                setCurrentTurnPosition(pos);
               }}
             />
           </div>
@@ -443,36 +516,55 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
 
         {currentStep === 2 && (
           <div className="flex flex-col gap-2">
-            <ActionConsole
-              currentPosition={currentTurnPosition}
-              isHero={isHeroTurn}
-              currentHighestBet={currentHighestBet}
-              raiseAmount={raiseAmount}
-              onActionSelect={handleActionSelect}
-              onRaiseAmountChange={setRaiseAmount}
-              onFastForwardToHero={handleFastForwardToHero}
-              canFastForwardToHero={heroIndex > turnIndex}
-              bbAmount={activeSession.blinds.bb}
-            />
+            {currentTurnPosition && (
+              <ActionConsole
+                currentPosition={currentTurnPosition}
+                isHero={isHeroTurn}
+                currentHighestBet={currentHighestBet}
+                raiseAmount={raiseAmount}
+                onActionSelect={handleActionSelect}
+                onRaiseAmountChange={setRaiseAmount}
+                onFastForwardToHero={handleFastForwardToHero}
+                canFastForwardToHero={Boolean(
+                  currentTurnIndex !== -1 &&
+                  heroIndex > currentTurnIndex &&
+                  currentHighestBet === activeSession.blinds.bb &&
+                  !seatStates[heroPosition]?.hasActedInRound
+                )}
+                bbAmount={activeSession.blinds.bb}
+              />
+            )}
 
-            {allActed && (
-              <div className="flex items-center gap-2 pt-1 animate-in fade-in duration-150">
-                <button
-                  type="button"
-                  onClick={() => setStep(4)}
-                  className="flex-1 h-12 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all"
-                >
-                  <span>Revisar mano</span>
-                </button>
+            {isPreflopComplete && (
+              <div className="flex flex-col gap-2 bg-[#0D1826] border border-poker-emerald/40 p-3 rounded-2xl animate-in fade-in duration-150">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                  <span className="flex items-center gap-1.5 text-poker-emerald">
+                    <CheckCircle2 className="w-4 h-4 text-poker-emerald" />
+                    Ronda Preflop Completada
+                  </span>
+                  <span className="text-slate-400">
+                    Apuesta igualada: ${roundStatus.highestBet.toLocaleString('es-AR')}
+                  </span>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  className="flex-1 h-12 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-sm rounded-xl shadow-neon-emerald flex items-center justify-center gap-1.5 transition-all"
-                >
-                  <span>Ir al Flop</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setStep(4)}
+                    className="flex-1 h-12 bg-slate-800 hover:bg-slate-700 active:scale-98 text-slate-200 font-bold text-sm rounded-xl border border-slate-700 flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <span>Revisar mano</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="flex-1 h-12 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-sm rounded-xl shadow-neon-emerald flex items-center justify-center gap-1.5 transition-all"
+                  >
+                    <span>Ir al Flop</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
