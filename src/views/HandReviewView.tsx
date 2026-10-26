@@ -10,6 +10,7 @@ interface HandReviewViewProps {
   playerCount: number;
   heroPosition: TablePosition;
   heroCards?: Card[];
+  stackAtStart?: number;
   preflopActions: PlayerAction[];
   flopCards?: Card[];
   flopActions?: PlayerAction[];
@@ -28,6 +29,7 @@ export const HandReviewView: React.FC<HandReviewViewProps> = ({
   playerCount,
   heroPosition,
   heroCards = [],
+  stackAtStart,
   preflopActions,
   flopCards = [],
   flopActions = [],
@@ -124,6 +126,14 @@ export const HandReviewView: React.FC<HandReviewViewProps> = ({
 
           <div className="text-xs text-slate-400 mb-3">
             Ciegas: {blinds.sb.toLocaleString('es-AR')} / {blinds.bb.toLocaleString('es-AR')} &nbsp;|&nbsp; Mesa: {playerCount} jugadores
+            {typeof stackAtStart === 'number' && stackAtStart > 0 && (
+              <>
+                {' '}&nbsp;|&nbsp; Stack:{' '}
+                <span className="text-poker-emerald font-bold">
+                  ${stackAtStart.toLocaleString('es-AR')} ({Number((stackAtStart / blinds.bb).toFixed(1))} BB)
+                </span>
+              </>
+            )}
           </div>
 
           <div className="flex items-center justify-between pt-1">

@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, MoreVertical, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, MoreVertical, CheckCircle2, Coins, Minus, Plus, X } from 'lucide-react';
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
 import { ActionConsole } from '../components/poker/ActionConsole';
 import { PreflopActionTimeline } from '../components/poker/PreflopActionTimeline';
 import { CommunityCardsPicker } from '../components/poker/CommunityCardsPicker';
 import { FlopActionConsole } from '../components/poker/FlopActionConsole';
+import { CustomNumberModal } from '../components/common/CustomNumberModal';
 import { HandReviewView } from './HandReviewView';
 import { useHandStore } from '../stores/handStore';
 import { useSessionStore } from '../stores/sessionStore';
@@ -37,9 +38,11 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     preflopActions,
     flopCards,
     flopActions,
+    stackAtStart,
     setStep,
     setStreet,
     setHeroPosition,
+    setStackAtStart,
     addCard,
     removeCard,
     clearCards,
@@ -55,28 +58,36 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   } = useHandStore();
 
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [raiseAmount, setRaiseAmount] = useState<number>(4000);
+  const [isStackModalOpen, setIsStackModalOpen] = useState(false);
+  const [lastKnownStack, setLastKnownStack] = useState<number>(
+    activeSession?.currentStack || activeSession?.initialStack || 50000
+  );
+  const [raiseAmount, setRaiseAmount] = useState<number>((activeSession?.blinds.bb || 1000) * 2);
   const [currentHighestBet, setCurrentHighestBet] = useState<number>(activeSession?.blinds.bb || 1000);
 
-  if (!activeSession) return null;
-
-  const triggerHaptic = () => {
-    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(15);
-    }
-  };
-
-  const allPositions = getPositionsForPlayerCount(activeSession.playerCount);
-  const actionOrder = getPreflopActionOrder(activeSession.playerCount);
+  const allPositions = useMemo(
+    () => getPositionsForPlayerCount(activeSession?.playerCount || 9),
+    [activeSession?.playerCount]
+  );
+  const actionOrder = useMemo(
+    () => getPreflopActionOrder(activeSession?.playerCount || 9),
+    [activeSession?.playerCount]
+  );
   const activePlayers = getActivePlayersForFlop(allPositions);
 
   // Asientos y estado de apuestas con bettingEngine
   const [seatStates, setSeatStates] = useState<Record<TablePosition, BettingPlayerState>>(() =>
-    bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds)
+    bettingEngine.initPreflopSeats(
+      actionOrder,
+      heroPosition,
+      activeSession?.blinds || { sb: 1000, bb: 1000 }
+    )
   );
 
   // Turno actual: TablePosition o null cuando la ronda preflop ha concluido
-  const [currentTurnPosition, setCurrentTurnPosition] = useState<TablePosition | null>(actionOrder[0] || heroPosition);
+  const [currentTurnPosition, setCurrentTurnPosition] = useState<TablePosition | null>(
+    actionOrder[0] || heroPosition
+  );
   const isHeroTurn = currentTurnPosition === heroPosition;
   const heroIndex = actionOrder.indexOf(heroPosition);
   const currentTurnIndex = currentTurnPosition ? actionOrder.indexOf(currentTurnPosition) : -1;
@@ -85,38 +96,34 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
   const [roundStatus, setRoundStatus] = useState<BettingRoundStatus>({
     isRoundComplete: false,
     isHandOver: false,
-    highestBet: activeSession.blinds.bb,
+    highestBet: activeSession?.blinds.bb || 1000,
     nextPositionToAct: actionOrder[0] || null,
     activePlayersCount: actionOrder.length
   });
 
-  // Si cambia heroPosition en Paso 1, sincronizar la marca isHero sin reiniciar si no es necesario
+  // Si cambia heroPosition en Paso 1, sincronizar únicamente la marca isHero sin reiniciar los asientos ni el turno
   useEffect(() => {
-    if (preflopActions.length === 0) {
-      const initial = bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds);
-      setSeatStates(initial);
-      setCurrentTurnPosition(actionOrder[0] || heroPosition);
-      setCurrentHighestBet(activeSession.blinds.bb);
-      setRaiseAmount(activeSession.blinds.bb * 2);
-      setRoundStatus({
-        isRoundComplete: false,
-        isHandOver: false,
-        highestBet: activeSession.blinds.bb,
-        nextPositionToAct: actionOrder[0] || null,
-        activePlayersCount: actionOrder.length
+    setSeatStates((prev) => {
+      let hasChanges = false;
+      const updated = { ...prev };
+      actionOrder.forEach((pos) => {
+        const shouldBeHero = pos === heroPosition;
+        if (updated[pos] && updated[pos].isHero !== shouldBeHero) {
+          updated[pos] = { ...updated[pos], isHero: shouldBeHero };
+          hasChanges = true;
+        }
       });
-    } else {
-      setSeatStates((prev) => {
-        const updated = { ...prev };
-        actionOrder.forEach((pos) => {
-          if (updated[pos]) {
-            updated[pos] = { ...updated[pos], isHero: pos === heroPosition };
-          }
-        });
-        return updated;
-      });
+      return hasChanges ? updated : prev;
+    });
+  }, [heroPosition, actionOrder]);
+
+  if (!activeSession) return null;
+
+  const triggerHaptic = () => {
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(15);
     }
-  }, [heroPosition, actionOrder, activeSession.blinds, preflopActions.length]);
+  };
 
   // Manejar acción del jugador en turno
   const handleActionSelect = (action: ActionType, amount?: number) => {
@@ -241,18 +248,20 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     if (currentStep === 1) {
       setStep(2);
       setStreet('preflop');
-      const initial = bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds);
-      setSeatStates(initial);
-      setCurrentTurnPosition(actionOrder[0] || heroPosition);
-      setCurrentHighestBet(activeSession.blinds.bb);
-      setRaiseAmount(activeSession.blinds.bb * 2);
-      setRoundStatus({
-        isRoundComplete: false,
-        isHandOver: false,
-        highestBet: activeSession.blinds.bb,
-        nextPositionToAct: actionOrder[0] || null,
-        activePlayersCount: actionOrder.length
-      });
+      if (preflopActions.length === 0) {
+        const initial = bettingEngine.initPreflopSeats(actionOrder, heroPosition, activeSession.blinds);
+        setSeatStates(initial);
+        setCurrentTurnPosition(actionOrder[0] || heroPosition);
+        setCurrentHighestBet(activeSession.blinds.bb);
+        setRaiseAmount(activeSession.blinds.bb * 2);
+        setRoundStatus({
+          isRoundComplete: false,
+          isHandOver: false,
+          highestBet: activeSession.blinds.bb,
+          nextPositionToAct: actionOrder[0] || null,
+          activePlayersCount: actionOrder.length
+        });
+      }
     } else if (currentStep === 2) {
       setStep(3);
       setStreet('flop');
@@ -320,6 +329,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         playerCount={activeSession.playerCount}
         heroPosition={heroPosition}
         heroCards={heroCards}
+        stackAtStart={stackAtStart}
         preflopActions={preflopActions}
         flopCards={flopCards}
         flopActions={flopActions}
@@ -406,8 +416,122 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       {/* Contenido Principal */}
       <div className="flex-1 flex flex-col gap-2 py-2 overflow-y-auto no-scrollbar">
         {currentStep === 1 && (
-          /* PASO 1: Posición y Mano */
+          /* PASO 1: Posición, Stack Opcional y Mano */
           <>
+            {/* Barra compacta de Stack Actual (Opcional) */}
+            <div className="bg-[#0B1420] border border-[#1E2E42] rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 shadow-sm">
+              {typeof stackAtStart === 'number' && stackAtStart > 0 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic();
+                      setIsStackModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 text-left active:scale-98 transition-all"
+                  >
+                    <Coins className="w-4 h-4 text-poker-emerald flex-shrink-0" />
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-xs font-extrabold text-poker-emerald">
+                        ${stackAtStart.toLocaleString('es-AR')}
+                      </span>
+                      <span className="text-[11px] font-semibold text-emerald-400/80">
+                        ({Number((stackAtStart / activeSession.blinds.bb).toFixed(1))} BB)
+                      </span>
+                    </div>
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic();
+                        const step = activeSession.blinds.bb;
+                        const next = Math.max(step, stackAtStart - step);
+                        setStackAtStart(next);
+                        setLastKnownStack(next);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-90 text-slate-200 flex items-center justify-center border border-[#243750]"
+                      aria-label="Restar 1 BB al stack"
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic();
+                        const step = activeSession.blinds.bb;
+                        const next = stackAtStart + step;
+                        setStackAtStart(next);
+                        setLastKnownStack(next);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-90 text-slate-200 flex items-center justify-center border border-[#243750]"
+                      aria-label="Sumar 1 BB al stack"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic();
+                        setIsStackModalOpen(true);
+                      }}
+                      className="h-7 px-2 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-95 text-[11px] font-bold text-slate-300 border border-[#243750]"
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic();
+                        setStackAtStart(undefined);
+                      }}
+                      className="w-7 h-7 rounded-lg bg-slate-800/60 hover:bg-slate-800 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center"
+                      aria-label="Quitar stack de esta mano"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-slate-300">
+                      Mi stack <span className="text-[11px] font-normal text-slate-500">(opcional)</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic();
+                        setStackAtStart(lastKnownStack);
+                      }}
+                      className="h-7 px-2.5 rounded-lg bg-[#122230] hover:bg-[#182E40] active:scale-95 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all"
+                    >
+                      Usar ${(lastKnownStack / 1000).toLocaleString('es-AR')}K
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        triggerHaptic();
+                        setIsStackModalOpen(true);
+                      }}
+                      className="h-7 px-2.5 rounded-lg bg-[#162334] hover:bg-[#1E3046] active:scale-95 border border-[#253852] text-slate-200 text-xs font-bold transition-all"
+                    >
+                      Cargar $
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
             <PokerTable
               playerCount={activeSession.playerCount}
               heroPosition={heroPosition}
@@ -422,6 +546,17 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               onClear={clearCards}
               maxCards={2}
               label="Tu mano (2 toques: rango + palo)"
+            />
+
+            <CustomNumberModal
+              isOpen={isStackModalOpen}
+              title="Mi Stack Actual"
+              initialValue={stackAtStart || lastKnownStack}
+              onConfirm={(val) => {
+                setStackAtStart(val);
+                setLastKnownStack(val);
+              }}
+              onClose={() => setIsStackModalOpen(false)}
             />
           </>
         )}

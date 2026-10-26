@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Delete, Check } from 'lucide-react';
 
 interface CustomNumberModalProps {
@@ -18,6 +18,14 @@ export const CustomNumberModal: React.FC<CustomNumberModalProps> = ({
   onClose
 }) => {
   const [strValue, setStrValue] = useState(initialValue.toString());
+  const [hasTyped, setHasTyped] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStrValue(initialValue > 0 ? initialValue.toString() : '0');
+      setHasTyped(false);
+    }
+  }, [isOpen, initialValue]);
 
   if (!isOpen) return null;
 
@@ -29,6 +37,11 @@ export const CustomNumberModal: React.FC<CustomNumberModalProps> = ({
 
   const handleDigit = (digit: string) => {
     triggerHaptic();
+    if (!hasTyped) {
+      setStrValue(digit);
+      setHasTyped(true);
+      return;
+    }
     if (strValue === '0') {
       setStrValue(digit);
     } else if (strValue.length < 8) {
@@ -38,6 +51,7 @@ export const CustomNumberModal: React.FC<CustomNumberModalProps> = ({
 
   const handleDelete = () => {
     triggerHaptic();
+    setHasTyped(true);
     if (strValue.length > 1) {
       setStrValue(strValue.slice(0, -1));
     } else {
@@ -47,6 +61,7 @@ export const CustomNumberModal: React.FC<CustomNumberModalProps> = ({
 
   const handleClear = () => {
     triggerHaptic();
+    setHasTyped(true);
     setStrValue('0');
   };
 

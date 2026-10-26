@@ -33,7 +33,7 @@ export interface RecordedHand {
   createdAt: number;
   heroPosition: TablePosition;
   heroCards?: [Card, Card];
-  stackAtStart: number;
+  stackAtStart?: number;
   preflopActions: PlayerAction[];
   flopCards?: [Card, Card, Card];
   flopActions?: PlayerAction[];

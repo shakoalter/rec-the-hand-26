@@ -14,14 +14,15 @@ interface HandState {
   preflopActions: PlayerAction[];
   flopCards: Card[];
   flopActions: PlayerAction[];
-  stackAtStart: number;
+  stackAtStart: number | undefined;
 
   // Acciones
-  initHand: (sessionId: string, currentStack: number, defaultHeroPos?: TablePosition) => Promise<void>;
+  initHand: (sessionId: string, currentStack?: number, defaultHeroPos?: TablePosition) => Promise<void>;
   setStep: (step: 1 | 2 | 3 | 4) => void;
   setStreet: (street: HandStreet) => void;
   setHeroPosition: (pos: TablePosition) => void;
   setDealerPosition: (pos: TablePosition) => void;
+  setStackAtStart: (stack: number | undefined) => void;
   addCard: (card: Card) => void;
   removeCard: (index: number) => void;
   clearCards: () => void;
@@ -52,11 +53,16 @@ export const useHandStore = create<HandState>((set, get) => ({
   preflopActions: [],
   flopCards: [],
   flopActions: [],
-  stackAtStart: 50000,
+  stackAtStart: undefined,
 
-  initHand: async (sessionId, currentStack, defaultHeroPos = 'BTN') => {
-    const existingHands = await sessionRepository.getHandsBySession(sessionId);
-    const nextHandNumber = existingHands.length + 1;
+  initHand: async (sessionId, _currentStack, defaultHeroPos = 'BTN') => {
+    let nextHandNumber = 1;
+    try {
+      const existingHands = await sessionRepository.getHandsBySession(sessionId);
+      nextHandNumber = existingHands.length + 1;
+    } catch {
+      nextHandNumber = 1;
+    }
 
     set({
       sessionId,
@@ -69,7 +75,7 @@ export const useHandStore = create<HandState>((set, get) => ({
       preflopActions: [],
       flopCards: [],
       flopActions: [],
-      stackAtStart: currentStack,
+      stackAtStart: undefined,
     });
   },
 
@@ -80,6 +86,8 @@ export const useHandStore = create<HandState>((set, get) => ({
   setHeroPosition: (pos) => set({ heroPosition: pos }),
 
   setDealerPosition: (pos) => set({ dealerPosition: pos }),
+
+  setStackAtStart: (stack) => set({ stackAtStart: stack }),
 
   addCard: (card) => {
     const { heroCards, flopCards } = get();
@@ -202,7 +210,8 @@ export const useHandStore = create<HandState>((set, get) => ({
       heroCards: [],
       preflopActions: [],
       flopCards: [],
-      flopActions: []
+      flopActions: [],
+      stackAtStart: undefined
     }));
   }
 }));

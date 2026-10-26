@@ -66,4 +66,16 @@ describe('useHandStore', () => {
     const active = store.getActivePlayersForFlop(allPositions as any);
     expect(active).toEqual(['UTG', 'BTN']);
   });
+
+  it('debe dejar stackAtStart como undefined por defecto al iniciar mano y permitir asignarlo o limpiarlo opcionalmente', async () => {
+    const store = useHandStore.getState();
+    await store.initHand('session-1', 50000, 'CO');
+    expect(useHandStore.getState().stackAtStart).toBeUndefined();
+
+    store.setStackAtStart(62000);
+    expect(useHandStore.getState().stackAtStart).toBe(62000);
+
+    store.resetHand();
+    expect(useHandStore.getState().stackAtStart).toBeUndefined();
+  });
 });

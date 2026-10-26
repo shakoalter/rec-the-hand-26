@@ -83,10 +83,19 @@ export const bettingEngine = {
       player.hasActedInRound = true;
       finalAmount = highestBet;
       player.actions = [...player.actions, { actionType: 'call', amount: finalAmount }];
-    } else if (actionType === 'raise' || actionType === '3bet' || actionType === '4bet') {
+    } else if (
+      actionType === 'raise' ||
+      actionType === '3bet' ||
+      actionType === '4bet' ||
+      actionType === 'bet' ||
+      actionType === 'allin'
+    ) {
       finalAmount = amount || highestBet * 2;
       player.totalContributed = finalAmount;
       player.hasActedInRound = true;
+      if (actionType === 'allin') {
+        player.status = 'allin';
+      }
       newHighest = Math.max(highestBet, finalAmount);
       player.actions = [...player.actions, { actionType, amount: finalAmount }];
     }
@@ -110,17 +119,18 @@ export const bettingEngine = {
     currentTurnPosition: TablePosition,
     highestBet: number
   ): BettingRoundStatus {
-    const activeSeats = actionOrder.map((pos) => seats[pos]).filter((s) => s.status === 'active');
+    const inHandSeats = actionOrder.map((pos) => seats[pos]).filter((s) => s && s.status !== 'folded');
+    const activeSeats = inHandSeats.filter((s) => s.status === 'active');
 
-    // 1. Si solo queda 1 jugador activo, todos los demás foldearon -> Mano terminada
-    if (activeSeats.length <= 1) {
+    // 1. Si solo queda 1 jugador en la mano, todos los demás foldearon -> Mano terminada
+    if (inHandSeats.length <= 1) {
       return {
         isRoundComplete: true,
         isHandOver: true,
-        winnerPosition: activeSeats[0]?.position,
+        winnerPosition: inHandSeats[0]?.position,
         highestBet,
         nextPositionToAct: null,
-        activePlayersCount: activeSeats.length
+        activePlayersCount: inHandSeats.length
       };
     }
 
@@ -134,7 +144,7 @@ export const bettingEngine = {
         isHandOver: false,
         highestBet,
         nextPositionToAct: null,
-        activePlayersCount: activeSeats.length
+        activePlayersCount: inHandSeats.length
       };
     }
 
@@ -154,7 +164,7 @@ export const bettingEngine = {
           isHandOver: false,
           highestBet,
           nextPositionToAct: candidatePos,
-          activePlayersCount: activeSeats.length
+          activePlayersCount: inHandSeats.length
         };
       }
     }
@@ -165,7 +175,7 @@ export const bettingEngine = {
       isHandOver: false,
       highestBet,
       nextPositionToAct: null,
-      activePlayersCount: activeSeats.length
+      activePlayersCount: inHandSeats.length
     };
   }
 };

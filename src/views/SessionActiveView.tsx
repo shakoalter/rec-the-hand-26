@@ -6,12 +6,13 @@ import { sessionRepository } from '../db/sessionRepository';
 import { RecordedHand } from '../types/session';
 import { GlassCard } from '../components/common/GlassCard';
 import { ExportModal } from '../components/common/ExportModal';
+import { exportUtils } from '../utils/exportUtils';
 import { HandRecorderView } from './HandRecorderView';
 import { HandReviewView } from './HandReviewView';
 
 export const SessionActiveView: React.FC = () => {
   const { activeSession, finishSession } = useSessionStore();
-  const { initHand } = useHandStore();
+  const initHand = useHandStore((state) => state.initHand);
 
   const [isRecording, setIsRecording] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -48,17 +49,8 @@ export const SessionActiveView: React.FC = () => {
     await loadSessionHands();
   };
 
-  // Métricas rápidas de póker
-  const totalHands = recordedHands.length;
-  const vpipHands = recordedHands.filter((h) =>
-    h.preflopActions.some((a) => a.isHero && (a.actionType === 'call' || a.actionType === 'raise' || a.actionType === 'limp'))
-  ).length;
-  const pfrHands = recordedHands.filter((h) =>
-    h.preflopActions.some((a) => a.isHero && a.actionType === 'raise')
-  ).length;
-
-  const vpipPercent = totalHands > 0 ? Math.round((vpipHands / totalHands) * 100) : 0;
-  const pfrPercent = totalHands > 0 ? Math.round((pfrHands / totalHands) * 100) : 0;
+  // Métricas rápidas de póker unificadas con el exportador
+  const { totalHands, vpipPercent, pfrPercent } = exportUtils.calculateSessionStats(recordedHands);
 
   if (isRecording) {
     return <HandRecorderView onBackToSession={() => setIsRecording(false)} />;
@@ -73,6 +65,7 @@ export const SessionActiveView: React.FC = () => {
         playerCount={activeSession.playerCount}
         heroPosition={selectedHandForReview.heroPosition}
         heroCards={selectedHandForReview.heroCards}
+        stackAtStart={selectedHandForReview.stackAtStart}
         preflopActions={selectedHandForReview.preflopActions}
         flopCards={selectedHandForReview.flopCards}
         flopActions={selectedHandForReview.flopActions}
