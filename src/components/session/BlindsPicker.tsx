@@ -51,33 +51,36 @@ export const BlindsPicker: React.FC<BlindsPickerProps> = ({ sb, bb, onChange }) 
   };
 
   return (
-    <GlassCard className="relative overflow-hidden">
-      {/* Title & Icon */}
-      <div className="flex items-center gap-3 mb-3.5">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400/20 to-slate-600/30 border border-slate-400/30 flex items-center justify-center flex-shrink-0 shadow-inner">
-          <svg className="w-6 h-6 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <ellipse cx="12" cy="7" rx="8" ry="3.5" fill="#94A3B8" fillOpacity="0.3" />
-            <path d="M4 7v5c0 1.93 3.58 3.5 8 3.5s8-1.57 8-3.5V7" />
-            <path d="M4 12v5c0 1.93 3.58 3.5 8 3.5s8-1.57 8-3.5v-5" />
-          </svg>
+    <GlassCard compact className="relative overflow-hidden">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-400/20 to-slate-600/30 border border-slate-400/30 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <svg className="w-4.5 h-4.5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <ellipse cx="12" cy="7" rx="8" ry="3.5" fill="#94A3B8" fillOpacity="0.3" />
+              <path d="M4 7v5c0 1.93 3.58 3.5 8 3.5s8-1.57 8-3.5V7" />
+              <path d="M4 12v5c0 1.93 3.58 3.5 8 3.5s8-1.57 8-3.5v-5" />
+            </svg>
+          </div>
+          <h2 className="text-white font-bold text-sm sm:text-base tracking-wide">
+            Ciegas (SB / BB)
+          </h2>
         </div>
-        <div>
-          <h2 className="text-white font-bold text-base tracking-wide">Ciegas</h2>
-          <p className="text-poker-textMuted text-xs">Valor de la ciega chica y grande</p>
-        </div>
+        <span className="text-[11px] text-slate-400">Tocá un valor para editar</span>
       </div>
 
       {/* Sub-columns: Ciega chica & Ciega grande */}
-      <div className="grid grid-cols-2 gap-3 mb-3.5">
+      <div className="grid grid-cols-2 gap-2.5 mb-2.5">
         {/* SB column */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium text-slate-400 text-center">
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] font-semibold text-slate-300 text-center">
             Ciega chica (SB)
           </span>
           <NumberStepper
             value={sb}
             onIncrement={handleSbInc}
             onDecrement={handleSbDec}
+            onValueClick={() => setModalType('sb')}
             min={100}
             compact
             className="w-full"
@@ -85,17 +88,18 @@ export const BlindsPicker: React.FC<BlindsPickerProps> = ({ sb, bb, onChange }) 
         </div>
 
         {/* BB column */}
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1">
           <div className="flex items-center justify-center gap-1.5">
-            <span className="text-xs font-medium text-slate-400">
+            <span className="text-[11px] font-semibold text-slate-300">
               Ciega grande (BB)
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-poker-emerald shadow-neon-emerald"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-poker-emerald shadow-neon-emerald" />
           </div>
           <NumberStepper
             value={bb}
             onIncrement={handleBbInc}
             onDecrement={handleBbDec}
+            onValueClick={() => setModalType('bb')}
             min={100}
             compact
             className="w-full"
@@ -104,21 +108,21 @@ export const BlindsPicker: React.FC<BlindsPickerProps> = ({ sb, bb, onChange }) 
       </div>
 
       {/* Presets row */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1.5">
         {PRESETS.map((p) => (
           <PresetPill
             key={p.label}
             label={p.label}
             isActive={sb === p.sb && bb === p.bb}
             onClick={() => handlePreset(p.sb, p.bb)}
-            className="text-xs px-2"
+            className="text-xs px-1.5"
           />
         ))}
         <PresetPill
           label="Otro"
           isActive={isCustom}
           onClick={() => setModalType('bb')}
-          className="text-xs px-2"
+          className="text-xs px-1.5"
         />
       </div>
 

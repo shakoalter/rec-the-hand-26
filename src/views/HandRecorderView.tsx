@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, MoreVertical, CheckCircle2, Coins, Minus, Plus, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Coins, Minus, Plus, X, Lock } from 'lucide-react';
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
 import { ActionConsole } from '../components/poker/ActionConsole';
@@ -13,18 +13,25 @@ import { useSessionStore } from '../stores/sessionStore';
 import { ActionType, HandStreet, TablePosition } from '../types/poker';
 import { getPositionsForPlayerCount, getPreflopActionOrder } from '../core/positionEngine';
 import { bettingEngine, BettingPlayerState, BettingRoundStatus } from '../core/bettingEngine';
-import { clsx } from 'clsx';
+import { cn } from '../utils/cn';
 
 interface HandRecorderViewProps {
   onBackToSession: () => void;
 }
 
-const STREETS: { id: HandStreet; label: string }[] = [
+const STREETS: { id: HandStreet; label: string; disabled?: boolean }[] = [
   { id: 'preflop', label: 'PREFLOP' },
   { id: 'flop', label: 'FLOP' },
-  { id: 'turn', label: 'TURN' },
-  { id: 'river', label: 'RIVER' }
+  { id: 'turn', label: 'TURN', disabled: true },
+  { id: 'river', label: 'RIVER', disabled: true }
 ];
+
+const SUIT_SYMBOLS: Record<string, string> = {
+  spades: '♠',
+  hearts: '♥',
+  diamonds: '♦',
+  clubs: '♣'
+};
 
 export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSession }) => {
   const { activeSession } = useSessionStore();
@@ -51,6 +58,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     removeFlopCard,
     clearFlopCards,
     addFlopAction,
+    clearFlopActions,
     isCardInUse,
     getActivePlayersForFlop,
     saveHand,
@@ -59,6 +67,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [isStackModalOpen, setIsStackModalOpen] = useState(false);
+  const [isCustomRaiseModalOpen, setIsCustomRaiseModalOpen] = useState(false);
   const [lastKnownStack, setLastKnownStack] = useState<number>(
     activeSession?.currentStack || activeSession?.initialStack || 50000
   );
@@ -100,6 +109,24 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     nextPositionToAct: actionOrder[0] || null,
     activePlayersCount: actionOrder.length
   });
+
+  // Cantidad de subidas preflop para etiquetar Raise / 3-Bet / 4-Bet
+  const preflopRaiseCount = useMemo(
+    () =>
+      preflopActions.filter(
+        (a) =>
+          a.actionType === 'raise' ||
+          a.actionType === '3bet' ||
+          a.actionType === '4bet' ||
+          a.actionType === 'allin'
+      ).length,
+    [preflopActions]
+  );
+
+  // Pozo estimado en mesa preflop
+  const estimatedPot = useMemo(() => {
+    return Object.values(seatStates).reduce((sum, s) => sum + (s?.totalContributed || 0), 0);
+  }, [seatStates]);
 
   // Si cambia heroPosition en Paso 1, sincronizar únicamente la marca isHero sin reiniciar los asientos ni el turno
   useEffect(() => {
@@ -180,7 +207,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     setRoundStatus(evalStatus);
 
     if (evalStatus.isHandOver) {
-      // Todos foldearon ante la subida
       if (evalStatus.winnerPosition === heroPosition) {
         saveHand('Hero gana preflop (todos foldearon)').then(() => {
           triggerHaptic();
@@ -198,10 +224,8 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     }
 
     if (evalStatus.isRoundComplete) {
-      // Ronda terminada: todos los activos igualaron la apuesta más alta
       setCurrentTurnPosition(null);
     } else {
-      // Ronda sigue activa: pasar el turno al siguiente jugador que debe hablar (ej: villano ante un 3-bet)
       setCurrentTurnPosition(evalStatus.nextPositionToAct);
     }
   };
@@ -318,7 +342,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     }
   };
 
-  // Saber si la ronda preflop está completada
   const isPreflopComplete = roundStatus.isRoundComplete;
 
   if (currentStep === 4) {
@@ -340,6 +363,13 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
     );
   }
 
+  const stepLabel =
+    currentStep === 1
+      ? 'Paso 1/3 · Posición y Mano'
+      : currentStep === 2
+        ? 'Paso 2/3 · Preflop'
+        : 'Paso 3/3 · Postflop';
+
   return (
     <div className="relative min-h-[100dvh] bg-[#070C12] text-white flex flex-col justify-between overflow-x-hidden pt-safe pb-safe max-w-md mx-auto px-3.5">
       {/* Toast de confirmación de mano guardada */}
@@ -350,12 +380,12 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         </div>
       )}
 
-      {/* Encabezado (< | Mano #12 | ⋮) */}
+      {/* Encabezado Compacto con Indicador de Paso y Acceso Rápido a Revisión */}
       <header className="flex items-center justify-between py-2 border-b border-slate-800/80">
         <button
           type="button"
           onClick={handlePrevStep}
-          className="w-9 h-9 rounded-xl bg-transparent flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-all"
+          className="w-10 h-10 rounded-xl bg-[#111C2A] border border-[#223348] flex items-center justify-center text-slate-200 hover:text-white active:scale-90 transition-all"
           aria-label="Volver"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -365,61 +395,65 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
           <h1 className="text-base font-extrabold text-white tracking-wide leading-tight">
             Mano #{handNumber}
           </h1>
+          <span className="text-[11px] font-semibold text-slate-400 block">
+            {stepLabel}
+          </span>
         </div>
 
         <button
           type="button"
-          onClick={handleNextStep}
-          className="w-9 h-9 rounded-xl bg-transparent flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-all"
-          aria-label="Opciones"
+          onClick={() => {
+            triggerHaptic();
+            setStep(4);
+          }}
+          className="h-10 px-3 rounded-xl bg-[#111C2A] border border-[#223348] text-xs font-bold text-slate-300 hover:text-white active:scale-95 transition-all flex items-center justify-center"
         >
-          <MoreVertical className="w-5 h-5" />
+          Revisar
         </button>
       </header>
 
-      {/* Barra Horizontal Superior de Posiciones: Exclusivamente los asientos reales sin duplicados */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-2 no-scrollbar border-b border-slate-800/60">
-        {actionOrder.map((pos) => {
-          const isHero = pos === heroPosition;
-          const isCurrent = pos === currentTurnPosition;
-          const playerState = seatStates[pos];
-          const isFolded = playerState?.status === 'folded';
-          const acted = playerState?.hasActedInRound;
+      {/* Barra de Contexto Inteligente en Paso 2 y Paso 3 */}
+      {currentStep >= 2 && (
+        <div className="flex items-center justify-between gap-2 py-1.5 border-b border-slate-800/60 text-xs">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic();
+              setStep(1);
+            }}
+            className="min-h-[34px] px-2.5 py-1 rounded-xl bg-[#0D231A] border border-poker-emerald/60 text-poker-emerald font-bold flex items-center gap-1.5 active:scale-95 transition-all"
+            title="Tocar para cambiar posición o cartas de Hero"
+          >
+            <span>Hero: {heroPosition}</span>
+            {heroCards.length > 0 ? (
+              <span className="px-1.5 py-0.5 rounded bg-white text-slate-900 font-black text-[11px]">
+                {heroCards.map((c) => `${c.rank}${SUIT_SYMBOLS[c.suit] || ''}`).join(' ')}
+              </span>
+            ) : (
+              <span className="text-[11px] text-emerald-300/70 font-normal">(Sin cartas)</span>
+            )}
+          </button>
 
-          return (
-            <button
-              key={pos}
-              type="button"
-              onClick={() => {
-                triggerHaptic();
-                setCurrentTurnPosition(pos);
-              }}
-              className={clsx(
-                'h-8 px-2.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center flex-shrink-0 select-none active:scale-95',
-                isCurrent
-                  ? 'bg-blue-600 text-white ring-2 ring-white shadow-md'
-                  : isHero
-                    ? 'bg-[#0E2A1E] border border-poker-emerald text-poker-emerald shadow-neon-emerald'
-                    : isFolded
-                      ? 'bg-[#121A24] text-slate-600 opacity-50'
-                      : acted
-                        ? 'bg-[#182638] text-slate-300'
-                        : 'bg-[#101924] text-slate-500 border border-[#1E2E42]'
-              )}
-            >
-              {isHero ? `HERO (${pos})` : pos}
-            </button>
-          );
-        })}
-      </div>
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+            <span className="px-2 py-1 rounded-lg bg-[#101A28] border border-[#1E2E42]">
+              Pozo: <strong className="text-white">${estimatedPot.toLocaleString('es-AR')}</strong>
+            </span>
+            {currentStep === 2 && (
+              <span className="px-2 py-1 rounded-lg bg-[#101A28] border border-[#1E2E42]">
+                Apuesta: <strong className="text-poker-emerald">${currentHighestBet.toLocaleString('es-AR')}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Contenido Principal */}
-      <div className="flex-1 flex flex-col gap-2 py-2 overflow-y-auto no-scrollbar">
+      <div className="flex-1 flex flex-col gap-2 py-1.5 overflow-y-auto no-scrollbar">
         {currentStep === 1 && (
           /* PASO 1: Posición, Stack Opcional y Mano */
           <>
-            {/* Barra compacta de Stack Actual (Opcional) */}
-            <div className="bg-[#0B1420] border border-[#1E2E42] rounded-xl px-3 py-1.5 flex items-center justify-between gap-2 shadow-sm">
+            {/* Barra Ergonómica de Stack Actual (Opcional, botones >= 36x36px) */}
+            <div className="bg-[#0B1420] border border-[#1E2E42] rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-2 shadow-sm">
               {typeof stackAtStart === 'number' && stackAtStart > 0 ? (
                 <>
                   <button
@@ -428,11 +462,11 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                       triggerHaptic();
                       setIsStackModalOpen(true);
                     }}
-                    className="flex items-center gap-2 text-left active:scale-98 transition-all"
+                    className="min-h-[36px] flex items-center gap-2 text-left active:scale-98 transition-all"
                   >
                     <Coins className="w-4 h-4 text-poker-emerald flex-shrink-0" />
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-xs font-extrabold text-poker-emerald">
+                      <span className="text-xs sm:text-sm font-extrabold text-poker-emerald">
                         ${stackAtStart.toLocaleString('es-AR')}
                       </span>
                       <span className="text-[11px] font-semibold text-emerald-400/80">
@@ -441,7 +475,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                     </div>
                   </button>
 
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => {
@@ -451,10 +485,10 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                         setStackAtStart(next);
                         setLastKnownStack(next);
                       }}
-                      className="w-7 h-7 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-90 text-slate-200 flex items-center justify-center border border-[#243750]"
+                      className="w-9 h-9 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-90 text-slate-200 flex items-center justify-center border border-[#243750]"
                       aria-label="Restar 1 BB al stack"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-4 h-4" />
                     </button>
 
                     <button
@@ -466,10 +500,10 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                         setStackAtStart(next);
                         setLastKnownStack(next);
                       }}
-                      className="w-7 h-7 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-90 text-slate-200 flex items-center justify-center border border-[#243750]"
+                      className="w-9 h-9 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-90 text-slate-200 flex items-center justify-center border border-[#243750]"
                       aria-label="Sumar 1 BB al stack"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                     </button>
 
                     <button
@@ -478,7 +512,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                         triggerHaptic();
                         setIsStackModalOpen(true);
                       }}
-                      className="h-7 px-2 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-95 text-[11px] font-bold text-slate-300 border border-[#243750]"
+                      className="h-9 px-2.5 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-95 text-xs font-bold text-slate-200 border border-[#243750]"
                     >
                       Editar
                     </button>
@@ -489,10 +523,10 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                         triggerHaptic();
                         setStackAtStart(undefined);
                       }}
-                      className="w-7 h-7 rounded-lg bg-slate-800/60 hover:bg-slate-800 active:scale-90 text-slate-400 hover:text-white flex items-center justify-center"
+                      className="w-9 h-9 rounded-lg bg-slate-800/70 hover:bg-slate-800 active:scale-90 text-slate-300 hover:text-white flex items-center justify-center"
                       aria-label="Quitar stack de esta mano"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </>
@@ -501,7 +535,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                   <div className="flex items-center gap-2">
                     <Coins className="w-4 h-4 text-slate-400 flex-shrink-0" />
                     <span className="text-xs font-semibold text-slate-300">
-                      Mi stack <span className="text-[11px] font-normal text-slate-500">(opcional)</span>
+                      Mi stack <span className="text-[11px] font-normal text-slate-400">(opcional)</span>
                     </span>
                   </div>
 
@@ -512,7 +546,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                         triggerHaptic();
                         setStackAtStart(lastKnownStack);
                       }}
-                      className="h-7 px-2.5 rounded-lg bg-[#122230] hover:bg-[#182E40] active:scale-95 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition-all"
+                      className="h-9 px-3 rounded-lg bg-[#122230] hover:bg-[#182E40] active:scale-95 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-all"
                     >
                       Usar ${(lastKnownStack / 1000).toLocaleString('es-AR')}K
                     </button>
@@ -523,7 +557,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                         triggerHaptic();
                         setIsStackModalOpen(true);
                       }}
-                      className="h-7 px-2.5 rounded-lg bg-[#162334] hover:bg-[#1E3046] active:scale-95 border border-[#253852] text-slate-200 text-xs font-bold transition-all"
+                      className="h-9 px-3 rounded-lg bg-[#162334] hover:bg-[#1E3046] active:scale-95 border border-[#253852] text-slate-200 text-xs font-bold transition-all"
                     >
                       Cargar $
                     </button>
@@ -536,7 +570,9 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               playerCount={activeSession.playerCount}
               heroPosition={heroPosition}
               dealerPosition={dealerPosition}
+              heroCards={heroCards}
               onSelectHeroPosition={setHeroPosition}
+              onRemoveHeroCard={removeCard}
             />
 
             <CardSelector
@@ -545,7 +581,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
               onRemoveCard={removeCard}
               onClear={clearCards}
               maxCards={2}
-              label="Tu mano (2 toques: rango + palo)"
+              label="Tu mano"
             />
 
             <CustomNumberModal
@@ -562,16 +598,27 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         )}
 
         {currentStep === 2 && (
-          /* PASO 2: Acción Preflop por turnos */
+          /* PASO 2: Acción Preflop por turnos (Modelo 3 Híbrido Compacto) */
           <div className="flex flex-col gap-2">
             <PreflopActionTimeline
               positions={actionOrder}
               heroPosition={heroPosition}
               currentTurnPosition={currentTurnPosition}
               seatStates={seatStates}
+              highestBet={currentHighestBet}
               onSelectTurn={(pos) => {
                 setCurrentTurnPosition(pos);
               }}
+            />
+
+            <CustomNumberModal
+              isOpen={isCustomRaiseModalOpen}
+              title="Monto de Subida Preflop"
+              initialValue={raiseAmount}
+              onConfirm={(val) => {
+                setRaiseAmount(Math.max(activeSession.blinds.bb * 2, val));
+              }}
+              onClose={() => setIsCustomRaiseModalOpen(false)}
             />
           </div>
         )}
@@ -579,42 +626,52 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         {currentStep === 3 && (
           /* PASO 3: Flop Comunitario y Acciones */
           <>
-            {/* Jugadores activos restantes */}
-            <div className="flex items-center gap-1.5 overflow-x-auto py-1 no-scrollbar">
-              {activePlayers.map((pos) => (
-                <span
-                  key={pos}
-                  className={clsx(
-                    'px-2.5 py-1 rounded-lg text-xs font-bold border flex-shrink-0',
-                    pos === heroPosition
-                      ? 'bg-emerald-950/80 border-emerald-500/80 text-poker-emerald shadow-sm'
-                      : 'bg-[#121E2C] border-[#223348] text-slate-300'
-                  )}
-                >
-                  {pos === heroPosition ? `HERO (${pos})` : pos}
-                </span>
-              ))}
+            {/* Jugadores activos en el Flop + Street Tabs Honestos */}
+            <div className="flex items-center justify-between gap-2 bg-[#0B131E] border border-[#1A293D] rounded-xl px-2.5 py-1.5">
+              <span className="text-[11px] font-bold text-slate-400 flex-shrink-0">
+                Al Flop ({activePlayers.length}):
+              </span>
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                {activePlayers.map((pos) => (
+                  <span
+                    key={pos}
+                    className={cn(
+                      'px-2 py-0.5 rounded-md text-xs font-bold border flex-shrink-0',
+                      pos === heroPosition
+                        ? 'bg-emerald-950/90 border-emerald-500/80 text-poker-emerald'
+                        : 'bg-[#121E2C] border-[#223348] text-slate-300'
+                    )}
+                  >
+                    {pos === heroPosition ? `HERO (${pos})` : pos}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* Street Tabs */}
+            {/* Street Tabs (Turn y River deshabilitados honestamente con indicador Próx.) */}
             <div className="grid grid-cols-4 gap-1.5 bg-[#0C1522] p-1 rounded-xl border border-[#1A293D]">
               {STREETS.map((st) => (
                 <button
                   key={st.id}
                   type="button"
+                  disabled={st.disabled}
                   onClick={() => {
+                    if (st.disabled) return;
                     triggerHaptic();
                     if (st.id === 'preflop') setStep(2);
                     setStreet(st.id);
                   }}
-                  className={clsx(
-                    'py-1.5 rounded-lg text-xs font-bold transition-all text-center',
-                    currentStreet === st.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
+                  className={cn(
+                    'py-1.5 rounded-lg text-xs font-bold transition-all text-center flex items-center justify-center gap-1',
+                    st.disabled
+                      ? 'text-slate-600 cursor-not-allowed opacity-50'
+                      : currentStreet === st.id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'text-slate-300 hover:text-white'
                   )}
                 >
-                  {st.label}
+                  <span>{st.label}</span>
+                  {st.disabled && <Lock className="w-3 h-3 text-slate-600" />}
                 </button>
               ))}
             </div>
@@ -630,7 +687,9 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             <FlopActionConsole
               heroPosition={heroPosition}
               bbAmount={activeSession.blinds.bb}
+              flopActions={flopActions}
               onHeroAction={handleHeroFlopAction}
+              onClearFlopActions={clearFlopActions}
             />
           </>
         )}
@@ -644,7 +703,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             onClick={handleNextStep}
             className="w-full h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-98 text-white font-bold text-lg rounded-2xl shadow-neon-emerald flex items-center justify-center gap-2 transition-all"
           >
-            <span>Siguiente</span>
+            <span>Siguiente: Preflop</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         )}
@@ -657,14 +716,16 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                 isHero={isHeroTurn}
                 currentHighestBet={currentHighestBet}
                 raiseAmount={raiseAmount}
+                raiseCount={preflopRaiseCount}
                 onActionSelect={handleActionSelect}
                 onRaiseAmountChange={setRaiseAmount}
+                onOpenCustomRaiseModal={() => setIsCustomRaiseModalOpen(true)}
                 onFastForwardToHero={handleFastForwardToHero}
                 canFastForwardToHero={Boolean(
                   currentTurnIndex !== -1 &&
-                  heroIndex > currentTurnIndex &&
-                  currentHighestBet === activeSession.blinds.bb &&
-                  !seatStates[heroPosition]?.hasActedInRound
+                    heroIndex > currentTurnIndex &&
+                    currentHighestBet === activeSession.blinds.bb &&
+                    !seatStates[heroPosition]?.hasActedInRound
                 )}
                 bbAmount={activeSession.blinds.bb}
               />
@@ -677,7 +738,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                     <CheckCircle2 className="w-4 h-4 text-poker-emerald" />
                     Ronda Preflop Completada
                   </span>
-                  <span className="text-slate-400">
+                  <span className="text-slate-300">
                     Apuesta igualada: ${roundStatus.highestBet.toLocaleString('es-AR')}
                   </span>
                 </div>

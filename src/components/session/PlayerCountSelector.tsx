@@ -1,7 +1,7 @@
 import React from 'react';
 import { Users } from 'lucide-react';
 import { GlassCard } from '../common/GlassCard';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 
 interface PlayerCountSelectorProps {
   value: number;
@@ -23,20 +23,22 @@ export const PlayerCountSelector: React.FC<PlayerCountSelectorProps> = ({ value,
   };
 
   return (
-    <GlassCard className="relative overflow-hidden">
-      {/* Title & Icon */}
-      <div className="flex items-center gap-3 mb-3.5">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-500/20 to-slate-700/30 border border-slate-500/30 flex items-center justify-center flex-shrink-0 shadow-inner">
-          <Users className="w-5 h-5 text-slate-300" />
+    <GlassCard compact className="relative overflow-hidden">
+      {/* Compact Title & Icon */}
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-slate-500/20 to-slate-700/30 border border-slate-500/30 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <Users className="w-4 h-4 text-slate-300" />
+          </div>
+          <h2 className="text-white font-bold text-sm sm:text-base tracking-wide">
+            Cantidad de jugadores
+          </h2>
         </div>
-        <div>
-          <h2 className="text-white font-bold text-base tracking-wide">Cantidad de jugadores</h2>
-          <p className="text-poker-textMuted text-xs">Incluyéndote</p>
-        </div>
+        <span className="text-[11px] text-slate-400">Incluyéndote</span>
       </div>
 
       {/* 8 buttons selector row */}
-      <div className="grid grid-cols-8 gap-1.5 sm:gap-2">
+      <div className="grid grid-cols-8 gap-1.5">
         {PLAYER_OPTIONS.map((count) => {
           const isSelected = value === count;
           return (
@@ -44,7 +46,7 @@ export const PlayerCountSelector: React.FC<PlayerCountSelectorProps> = ({ value,
               key={count}
               type="button"
               onClick={() => handleSelect(count)}
-              className={clsx(
+              className={cn(
                 'h-11 rounded-xl font-bold text-base transition-all duration-150 flex items-center justify-center select-none active:scale-90',
                 isSelected
                   ? 'bg-[#0E2922] text-white border-2 border-poker-emerald shadow-neon-emerald'

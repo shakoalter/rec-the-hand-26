@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
-import { TablePosition, ActionType } from '../../types/poker';
-import { clsx } from 'clsx';
-import { Minus, Plus, CheckCircle2 } from 'lucide-react';
+import { TablePosition, ActionType, PlayerAction } from '../../types/poker';
+import { cn } from '../../utils/cn';
+import { Minus, Plus, CheckCircle2, RotateCcw } from 'lucide-react';
 
 interface FlopActionConsoleProps {
   heroPosition: TablePosition;
   bbAmount: number;
+  flopActions?: PlayerAction[];
   onHeroAction: (actionType: ActionType, amount?: number) => void;
+  onClearFlopActions?: () => void;
 }
 
 export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
   heroPosition,
   bbAmount,
-  onHeroAction
+  flopActions = [],
+  onHeroAction,
+  onClearFlopActions
 }) => {
   const [selectedAction, setSelectedAction] = useState<ActionType | null>(null);
-  const [betAmount, setBetAmount] = useState<number>(bbAmount * 5); // ej. 5.000 o 7.000
+  const [betAmount, setBetAmount] = useState<number>(bbAmount * 5);
 
   const triggerHaptic = () => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
@@ -23,13 +27,21 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
     }
   };
 
+  const formatPresetLabel = (amount: number) => {
+    if (amount >= 1000) {
+      const kVal = amount / 1000;
+      return `${Number.isInteger(kVal) ? kVal : kVal.toFixed(1)}K`;
+    }
+    return `$${amount}`;
+  };
+
   const presets = [
-    { label: `${(bbAmount * 3) / 1000}K`, amount: bbAmount * 3 },
-    { label: `${(bbAmount * 5) / 1000}K`, amount: bbAmount * 5 },
-    { label: `${(bbAmount * 7) / 1000}K`, amount: bbAmount * 7 },
-    { label: `${(bbAmount * 10) / 1000}K`, amount: bbAmount * 10 },
-    { label: `${(bbAmount * 15) / 1000}K`, amount: bbAmount * 15 },
-    { label: `${(bbAmount * 20) / 1000}K`, amount: bbAmount * 20 },
+    { label: formatPresetLabel(bbAmount * 3), amount: bbAmount * 3 },
+    { label: formatPresetLabel(bbAmount * 5), amount: bbAmount * 5 },
+    { label: formatPresetLabel(bbAmount * 7), amount: bbAmount * 7 },
+    { label: formatPresetLabel(bbAmount * 10), amount: bbAmount * 10 },
+    { label: formatPresetLabel(bbAmount * 15), amount: bbAmount * 15 },
+    { label: formatPresetLabel(bbAmount * 20), amount: bbAmount * 20 },
   ];
 
   const handleActionClick = (action: ActionType) => {
@@ -45,19 +57,53 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
   const handleConfirmBet = () => {
     triggerHaptic();
     onHeroAction(selectedAction === 'raise' ? 'raise' : 'bet', betAmount);
+    setSelectedAction(null);
   };
 
   return (
-    <div className="flex flex-col gap-3 bg-[#0A121D]/95 border border-[#1C2C3F] rounded-2xl p-3.5 shadow-2xl">
+    <div className="flex flex-col gap-2.5 bg-[#0A121D]/95 border border-[#1C2C3F] rounded-2xl p-3.5 shadow-2xl select-none">
       {/* Hero Postflop Header */}
-      <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-poker-emerald font-black text-xs shadow-neon-emerald">
-          H
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-poker-emerald font-black text-xs shadow-neon-emerald">
+            H
+          </div>
+          <span className="text-sm font-bold text-white tracking-wide">
+            Acción de Hero en el Flop ({heroPosition})
+          </span>
         </div>
-        <span className="text-sm font-bold text-white tracking-wide">
-          Acción de Hero en el Flop ({heroPosition})
-        </span>
+
+        {flopActions.length > 0 && onClearFlopActions && (
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic();
+              onClearFlopActions();
+              setSelectedAction(null);
+            }}
+            className="h-7 px-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1 active:scale-95 transition-all"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Limpiar</span>
+          </button>
+        )}
       </div>
+
+      {/* Feedback Visual de Acciones Registradas en el Flop */}
+      {flopActions.length > 0 && (
+        <div className="bg-[#0D1826] border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center gap-1.5 flex-wrap">
+          <span className="text-[11px] font-bold text-slate-400">Registrado:</span>
+          {flopActions.map((act, i) => (
+            <span
+              key={act.id}
+              className="px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-xs font-bold"
+            >
+              {i + 1}. {act.actionType.toUpperCase()}
+              {act.amount ? ` $${act.amount.toLocaleString('es-AR')}` : ''}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* 4 Action Buttons */}
       <div className="grid grid-cols-4 gap-2">
@@ -65,7 +111,7 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleActionClick('check')}
-          className={clsx(
+          className={cn(
             'h-12 rounded-xl font-bold text-sm transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
             selectedAction === 'check'
               ? 'bg-emerald-600 text-white ring-2 ring-emerald-300 shadow-neon-emerald'
@@ -82,7 +128,7 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
             triggerHaptic();
             setSelectedAction('bet');
           }}
-          className={clsx(
+          className={cn(
             'h-12 rounded-xl font-bold text-sm transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
             selectedAction === 'bet'
               ? 'bg-red-600 text-white ring-2 ring-red-300 shadow-lg'
@@ -96,7 +142,7 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleActionClick('call')}
-          className={clsx(
+          className={cn(
             'h-12 rounded-xl font-bold text-sm transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
             selectedAction === 'call'
               ? 'bg-blue-600 text-white ring-2 ring-blue-300'
@@ -110,7 +156,7 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleActionClick('fold')}
-          className={clsx(
+          className={cn(
             'h-12 rounded-xl font-bold text-sm transition-all select-none active:scale-95 flex items-center justify-center shadow-md',
             selectedAction === 'fold'
               ? 'bg-slate-700 text-white ring-2 ring-slate-400'
@@ -124,9 +170,9 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
       {/* Bet Sizing (Visible when Bet or Raise is active) */}
       {(selectedAction === 'bet' || selectedAction === 'raise') && (
         <div className="flex flex-col gap-2 pt-2 border-t border-slate-800/80 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold">Monto de apuesta</span>
-            <span className="text-white font-bold text-sm text-poker-emerald">
+          <div className="flex items-center justify-between text-xs text-slate-300">
+            <span className="font-semibold">Monto de apuesta en Flop</span>
+            <span className="font-bold text-sm text-poker-emerald">
               $ {betAmount.toLocaleString('es-AR')}
             </span>
           </div>
@@ -141,8 +187,8 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
                   triggerHaptic();
                   setBetAmount(p.amount);
                 }}
-                className={clsx(
-                  'h-8 rounded-lg font-bold text-xs transition-all active:scale-95 flex items-center justify-center',
+                className={cn(
+                  'h-9 rounded-lg font-bold text-xs transition-all active:scale-95 flex items-center justify-center',
                   betAmount === p.amount
                     ? 'bg-red-600 text-white shadow-md border border-red-400'
                     : 'bg-[#15202E] text-slate-300 border border-[#223348] hover:border-slate-500'
@@ -153,9 +199,9 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
             ))}
           </div>
 
-          {/* Stepper fino y botón de confirmación */}
-          <div className="flex items-center gap-2 pt-1">
-            <div className="flex-1 flex items-center justify-between bg-[#131E2C] border border-[#233347] rounded-xl h-11 px-2">
+          {/* Stepper fino con botones táctiles cómodos y botón de confirmación */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <div className="flex-1 flex items-center justify-between bg-[#131E2C] border border-[#233347] rounded-xl h-11 px-1.5">
               <button
                 type="button"
                 onClick={() => {
@@ -164,9 +210,10 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
                     setBetAmount(betAmount - bbAmount);
                   }
                 }}
-                className="w-7 h-7 rounded-lg bg-[#1B293A] text-slate-300 flex items-center justify-center active:scale-90"
+                className="w-9 h-9 rounded-lg bg-[#1B293A] hover:bg-[#25364D] text-slate-200 flex items-center justify-center active:scale-90"
+                aria-label="Restar 1 BB a la apuesta"
               >
-                <Minus className="w-3.5 h-3.5" />
+                <Minus className="w-4 h-4" />
               </button>
               <span className="font-bold text-sm text-white">
                 ${betAmount.toLocaleString('es-AR')}
@@ -177,9 +224,10 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
                   triggerHaptic();
                   setBetAmount(betAmount + bbAmount);
                 }}
-                className="w-7 h-7 rounded-lg bg-[#1B293A] text-slate-300 flex items-center justify-center active:scale-90"
+                className="w-9 h-9 rounded-lg bg-[#1B293A] hover:bg-[#25364D] text-slate-200 flex items-center justify-center active:scale-90"
+                aria-label="Sumar 1 BB a la apuesta"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
               </button>
             </div>
 

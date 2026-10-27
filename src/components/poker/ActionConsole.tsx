@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActionType, TablePosition } from '../../types/poker';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 import { Minus, Plus, FastForward } from 'lucide-react';
 
 interface ActionConsoleProps {
@@ -8,8 +8,10 @@ interface ActionConsoleProps {
   isHero: boolean;
   currentHighestBet: number;
   raiseAmount: number;
+  raiseCount?: number;
   onActionSelect: (action: ActionType, amount?: number) => void;
   onRaiseAmountChange: (amount: number) => void;
+  onOpenCustomRaiseModal?: () => void;
   onFastForwardToHero?: () => void;
   canFastForwardToHero?: boolean;
   bbAmount: number;
@@ -20,8 +22,10 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
   isHero,
   currentHighestBet,
   raiseAmount,
+  raiseCount = 0,
   onActionSelect,
   onRaiseAmountChange,
+  onOpenCustomRaiseModal,
   onFastForwardToHero,
   canFastForwardToHero = false,
   bbAmount
@@ -35,21 +39,42 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
     }
   };
 
-  // Presets adaptados al tamaño de la ciega grande o al tamaño del raise actual
+  const formatPresetLabel = (amount: number) => {
+    if (amount >= 1000) {
+      const kVal = amount / 1000;
+      return `${Number.isInteger(kVal) ? kVal : kVal.toFixed(1)}K`;
+    }
+    return `$${amount}`;
+  };
+
+  // Presets adaptados al tamaño de la ciega grande
   const minLegalRaise = isPotRaised ? currentHighestBet * 2 : bbAmount * 2;
   const presets = [
-    { label: `${(bbAmount * 2) / 1000}K`, amount: bbAmount * 2 },
-    { label: `${(bbAmount * 3) / 1000}K`, amount: bbAmount * 3 },
-    { label: `${(bbAmount * 4) / 1000}K`, amount: bbAmount * 4 },
-    { label: `${(bbAmount * 5) / 1000}K`, amount: bbAmount * 5 },
-    { label: `${(bbAmount * 8) / 1000}K`, amount: bbAmount * 8 },
-    { label: `${(bbAmount * 10) / 1000}K`, amount: bbAmount * 10 },
+    { label: formatPresetLabel(bbAmount * 2), amount: bbAmount * 2 },
+    { label: formatPresetLabel(bbAmount * 3), amount: bbAmount * 3 },
+    { label: formatPresetLabel(bbAmount * 4), amount: bbAmount * 4 },
+    { label: formatPresetLabel(bbAmount * 5), amount: bbAmount * 5 },
+    { label: formatPresetLabel(bbAmount * 8), amount: bbAmount * 8 },
+    { label: formatPresetLabel(bbAmount * 10), amount: bbAmount * 10 },
   ];
+
+  // Etiqueta semántica de subida (Raise / 3-Bet / 4-Bet)
+  const getRaiseButtonLabel = () => {
+    if (!isPotRaised || raiseCount === 0) return 'Raise';
+    if (raiseCount === 1) return '3-Bet';
+    return '4-Bet';
+  };
+
+  const getRaiseActionType = (): ActionType => {
+    if (!isPotRaised || raiseCount === 0) return 'raise';
+    if (raiseCount === 1) return '3bet';
+    return '4bet';
+  };
 
   const handleAction = (action: ActionType) => {
     triggerHaptic();
     if (action === 'raise') {
-      onActionSelect('raise', Math.max(minLegalRaise, raiseAmount));
+      onActionSelect(getRaiseActionType(), Math.max(minLegalRaise, raiseAmount));
     } else if (action === 'call') {
       onActionSelect('call', currentHighestBet);
     } else if (action === 'limp' || action === 'check') {
@@ -64,29 +89,31 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
     onRaiseAmountChange(Math.max(minLegalRaise, amount));
   };
 
+  const stepSize = bbAmount >= 1000 ? 500 : Math.max(50, Math.round(bbAmount / 2));
+
   const handleDec = () => {
     triggerHaptic();
-    const next = Math.max(minLegalRaise, raiseAmount - 500);
+    const next = Math.max(minLegalRaise, raiseAmount - stepSize);
     onRaiseAmountChange(next);
   };
 
   const handleInc = () => {
     triggerHaptic();
-    const next = raiseAmount + 500;
+    const next = raiseAmount + stepSize;
     onRaiseAmountChange(next);
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full bg-[#09111C]/95 border-t border-[#1C2C3F] pt-2 pb-1 select-none">
-      {/* Barra de Turno y Atajo */}
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-1.5 w-full bg-[#09111C]/95 border-t border-[#1C2C3F] pt-2 pb-1 select-none">
+      {/* Barra de Turno y Atajo Folds hasta Hero */}
+      <div className="flex items-center justify-between gap-2">
         {isHero ? (
-          <div className="px-3.5 py-1.5 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-2 shadow-neon-emerald">
-            <span className="w-2.5 h-2.5 rounded-full bg-poker-emerald animate-pulse" />
+          <div className="px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-2 shadow-neon-emerald">
+            <span className="w-2 h-2 rounded-full bg-poker-emerald animate-pulse" />
             HERO ({currentPosition}) — TU TURNO
           </div>
         ) : (
-          <div className="px-3 py-1.5 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-2">
+          <div className="px-3 py-1 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-400" />
             RIVAL ({currentPosition})
           </div>
@@ -99,7 +126,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
               triggerHaptic();
               onFastForwardToHero?.();
             }}
-            className="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+            className="min-h-[36px] px-3 py-1 rounded-xl bg-emerald-950/90 hover:bg-emerald-900/80 border border-emerald-500/60 text-emerald-300 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
           >
             <FastForward className="w-3.5 h-3.5" />
             <span>Folds hasta Hero</span>
@@ -107,13 +134,13 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         )}
       </div>
 
-      {/* 4 Botones Táctiles Grandes de Acción */}
+      {/* 4 Botones Táctiles Grandes de Acción (h-14 = 56px) */}
       <div className="grid grid-cols-4 gap-2">
         {/* FOLD */}
         <button
           type="button"
           onClick={() => handleAction('fold')}
-          className="h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60 shadow-md"
+          className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60 shadow-md"
         >
           Fold
         </button>
@@ -123,8 +150,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
           type="button"
           disabled={isPotRaised}
           onClick={() => handleAction(isBigBlind ? 'check' : 'limp')}
-          className={clsx(
-            'h-14 rounded-2xl font-bold text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
+          className={cn(
+            'h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
             isPotRaised
               ? 'bg-slate-800/40 text-slate-600 border border-slate-800 cursor-not-allowed opacity-40'
               : 'bg-[#10B981] hover:bg-[#059669]'
@@ -140,28 +167,26 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
           className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#1D72FE] hover:bg-[#155FD6] shadow-md leading-tight"
         >
           <span>Call</span>
-          {isPotRaised && (
-            <span className="text-[11px] font-semibold text-blue-200">
-              ${currentHighestBet.toLocaleString('es-AR')}
-            </span>
-          )}
+          <span className="text-[11px] font-semibold text-blue-100">
+            ${currentHighestBet.toLocaleString('es-AR')}
+          </span>
         </button>
 
-        {/* RAISE */}
+        {/* RAISE / 3-BET / 4-BET */}
         <button
           type="button"
           onClick={() => handleAction('raise')}
           className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-md leading-tight"
         >
-          <span>{isPotRaised ? '3-Bet' : 'Raise'}</span>
-          <span className="text-[11px] font-semibold text-red-200">
+          <span>{getRaiseButtonLabel()}</span>
+          <span className="text-[11px] font-semibold text-red-100">
             ${raiseAmount.toLocaleString('es-AR')}
           </span>
         </button>
       </div>
 
-      {/* Fila de Presets */}
-      <div className="grid grid-cols-6 gap-1.5 pt-0.5">
+      {/* Fila de 6 Presets Rápidos (h-10 = 40px) */}
+      <div className="grid grid-cols-6 gap-1.5">
         {presets.map((p) => {
           const isActive = raiseAmount === p.amount;
           return (
@@ -169,8 +194,8 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
               key={p.label}
               type="button"
               onClick={() => handlePresetSelect(p.amount)}
-              className={clsx(
-                'h-11 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center select-none',
+              className={cn(
+                'h-10 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 flex items-center justify-center select-none',
                 isActive
                   ? 'bg-[#1D72FE] text-white shadow-md border border-blue-400'
                   : 'bg-[#131E2C] text-slate-300 border border-[#233347] hover:border-slate-500'
@@ -182,31 +207,45 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         })}
       </div>
 
-      {/* Fila "Personalizado" con Stepper */}
-      <div className="flex items-center justify-between bg-[#0F1824] border border-[#1E2E42] rounded-2xl h-13 px-4 mt-0.5">
-        <span className="text-sm font-semibold text-slate-300">
-          Personalizado
+      {/* Fila Compacta "Personalizado" (h-11 = 44px) con toque directo para teclado numérico */}
+      <div className="flex items-center justify-between bg-[#0F1824] border border-[#1E2E42] rounded-xl h-11 px-3">
+        <span className="text-xs sm:text-sm font-semibold text-slate-300">
+          Monto subida
         </span>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleDec}
-            className="w-9 h-9 rounded-xl bg-[#172536] hover:bg-[#203146] active:scale-90 text-slate-200 flex items-center justify-center font-bold"
-            aria-label="Disminuir"
+            className="w-9 h-9 rounded-lg bg-[#172536] hover:bg-[#203146] active:scale-90 text-slate-200 flex items-center justify-center font-bold"
+            aria-label="Disminuir monto de subida"
           >
             <Minus className="w-4 h-4" />
           </button>
 
-          <span className="text-base font-extrabold text-white min-w-[70px] text-center select-text">
-            {raiseAmount.toLocaleString('es-AR')}
-          </span>
+          {onOpenCustomRaiseModal ? (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic();
+                onOpenCustomRaiseModal();
+              }}
+              className="h-9 px-2.5 rounded-lg bg-[#131E2C] hover:bg-slate-800 border border-[#233347] text-sm sm:text-base font-extrabold text-white min-w-[80px] text-center active:scale-95 transition-all"
+              title="Tocar para escribir monto exacto"
+            >
+              ${raiseAmount.toLocaleString('es-AR')}
+            </button>
+          ) : (
+            <span className="text-sm sm:text-base font-extrabold text-white min-w-[74px] text-center select-text">
+              ${raiseAmount.toLocaleString('es-AR')}
+            </span>
+          )}
 
           <button
             type="button"
             onClick={handleInc}
-            className="w-9 h-9 rounded-xl bg-[#172536] hover:bg-[#203146] active:scale-90 text-slate-200 flex items-center justify-center font-bold"
-            aria-label="Aumentar"
+            className="w-9 h-9 rounded-lg bg-[#172536] hover:bg-[#203146] active:scale-90 text-slate-200 flex items-center justify-center font-bold"
+            aria-label="Aumentar monto de subida"
           >
             <Plus className="w-4 h-4" />
           </button>

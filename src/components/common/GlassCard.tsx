@@ -1,17 +1,24 @@
 import React from 'react';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 
 interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
   glow?: boolean;
+  compact?: boolean;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({ children, className, glow = false }) => {
+export const GlassCard: React.FC<GlassCardProps> = ({
+  children,
+  className,
+  glow = false,
+  compact = false
+}) => {
   return (
     <div
-      className={clsx(
-        'glass-panel rounded-2xl p-4 transition-all duration-200',
+      className={cn(
+        'glass-panel rounded-2xl transition-all duration-200',
+        compact ? 'p-3' : 'p-3.5 sm:p-4',
         glow && 'neon-active',
         className
       )}

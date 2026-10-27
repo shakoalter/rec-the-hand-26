@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#0f131b;color:#dfe2ed;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-bright": "#353941", "on-error-container": "#ffdad6", "inverse-primary": "#006c49", "secondary": "#7bd0ff", "on-background": "#dfe2ed", "primary-fixed": "#6ffbbe", "on-tertiary": "#68000a", "tertiary-fixed": "#ffdad7", "tertiary": "#ffb3ad", "on-tertiary-fixed-variant": "#930013", "on-tertiary-container": "#79000e", "background": "#0f131b", "on-primary": "#003824", "outline-variant": "#3c4a42", "on-secondary": "#00354a", "on-primary-fixed-variant": "#005236", "on-surface-variant": "#bbcabf", "surface": "#0f131b", "primary-fixed-dim": "#4edea3", "on-tertiary-fixed": "#410004", "error": "#ffb4ab", "tertiary-fixed-dim": "#ffb3ad", "on-surface": "#dfe2ed", "secondary-fixed-dim": "#7bd0ff", "primary": "#4edea3", "surface-container": "#1c2027", "on-secondary-fixed": "#001e2c", "primary-container": "#10b981", "on-secondary-fixed-variant": "#004c69", "surface-container-lowest": "#0a0e15", "on-primary-fixed": "#002113", "surface-variant": "#31353d", "on-error": "#690005", "on-secondary-container": "#00374d", "surface-tint": "#4edea3", "surface-dim": "#0f131b", "inverse-on-surface": "#2d3038", "on-primary-container": "#00422b", "surface-container-high": "#262a32", "surface-container-highest": "#31353d", "secondary-fixed": "#c4e7ff", "inverse-surface": "#dfe2ed", "surface-container-low": "#181c23", "secondary-container": "#00a6e0", "error-container": "#93000a", "tertiary-container": "#ff7a73", "outline": "#86948a" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "0.75rem", "space-md": "0.75rem", "space-xs": "0.25rem", "margin": "1rem", "space-xl": "1.5rem", "space-lg": "1rem", "space-sm": "0.5rem" }, "fontFamily": { "headline-sm": ["Space Grotesk"], "label-badge": ["JetBrains Mono"], "label-action": ["Space Grotesk"], "body-lg": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Space Grotesk"], "mono-bet-input": ["JetBrains Mono"], "label-data": ["JetBrains Mono"], "body-md": ["Plus Jakarta Sans"], "mono-pot-display": ["JetBrains Mono"], "headline-md": ["Space Grotesk"], "body-sm": ["Plus Jakarta Sans"], "headline-lg": ["Space Grotesk"], "headline-lg-mobile": ["Space Grotesk"], "headline-xl": ["Space Grotesk"] }, "fontSize": { "headline-sm": ["16px", { "lineHeight": "22px", "fontWeight": "600" }], "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.06em", "fontWeight": "700" }], "label-action": ["14px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }], "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "mono-bet-input": ["24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "label-data": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "mono-pot-display": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.04em", "fontWeight": "700" }], "headline-md": ["20px", { "lineHeight": "26px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-container-lowest/85 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary shadow-[0_0_12px_rgba(78,222,163,0.25)]"><span class="material-symbols-outlined text-[20px]">token</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">RecTheHand26</span><span class="font-label-badge text-label-badge px-1 py-0.5 rounded bg-primary-container text-on-primary-container leading-none uppercase">PRO</span></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_#4edea3]"></span><span class="font-label-badge text-label-badge text-primary uppercase">Grabar Mano</span></div></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low text-on-surface-variant font-label-data text-label-data"><span class="material-symbols-outlined text-secondary text-[16px]">wifi_tethering</span><span class="material-symbols-outlined text-primary text-[16px]">battery_charging_full</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col w-full bg-surface pt-16 pb-24"><div class="flex flex-col w-full text-on-surface">
+<!-- Hand Status Banner & Hero Pocket Recall Bar -->
+<div class="px-margin pt-space-sm pb-space-xs flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">casino</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Mano #12</span>
+<span class="px-1.5 py-0.5 rounded-full bg-surface-container-highest text-secondary font-label-badge text-label-badge">NL500 (2/5)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Bote total proyectado: <span class="font-label-data text-label-data text-primary font-bold">$16.500</span></p>
+</div>
+</div>
+<!-- Hero Hole Cards Reminder & Hand Strength Badge -->
+<div class="flex flex-col items-end">
+<div class="flex items-center gap-1 bg-surface-container-low px-2 py-1 rounded-xl shadow-inner">
+<!-- Hero Card 1: A spade -->
+<div class="w-6 h-8 rounded bg-surface-container-highest flex flex-col items-center justify-center text-on-surface shadow-sm">
+<span class="font-label-badge text-[10px] leading-none font-bold">A</span>
+<span class="material-symbols-outlined text-[10px] leading-none" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<!-- Hero Card 2: K heart -->
+<div class="w-6 h-8 rounded bg-surface-container-highest flex flex-col items-center justify-center text-error shadow-sm">
+<span class="font-label-badge text-[10px] leading-none font-bold">K</span>
+<span class="material-symbols-outlined text-[10px] leading-none" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="ml-1 flex flex-col items-start leading-tight">
+<span class="font-label-badge text-[9px] uppercase tracking-wider text-primary">TPTK</span>
+<span class="font-body-sm text-[10px] text-on-surface-variant font-medium">Top Pair</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Street Tabs (Preflop, Flop, Turn, River) -->
+<div class="px-margin py-space-xs">
+<div class="grid grid-cols-4 gap-1 p-1 bg-surface-container-lowest rounded-xl">
+<!-- Preflop (Closed) -->
+<button class="flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-surface-container-low text-on-surface-variant transition-all opacity-85 active:scale-95" type="button">
+<span class="font-label-badge text-label-badge font-bold">PREFLOP</span>
+<span class="font-label-data text-[10px] text-on-surface-variant truncate">$8.500</span>
+</button>
+<!-- Flop (Active) -->
+<button class="relative flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-primary-container text-on-primary-container shadow-md transition-all" type="button">
+<div class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary animate-ping"></div>
+<div class="flex items-center gap-0.5">
+<span class="font-label-badge text-label-badge font-bold">FLOP</span>
+</div>
+<span class="font-label-data text-[10px] font-bold text-on-primary-container truncate">$16.500</span>
+</button>
+<!-- Turn (Pending/Active) -->
+<button class="flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container transition-all active:scale-95" type="button">
+<div class="flex items-center gap-0.5">
+<span class="font-label-badge text-label-badge">TURN</span>
+</div>
+<span class="font-label-data text-[10px] text-secondary">Añadir</span>
+</button>
+<!-- River (Locked) -->
+<button class="flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-surface-container-low/50 text-outline transition-all opacity-60" type="button">
+<span class="font-label-badge text-label-badge">RIVER</span>
+<span class="material-symbols-outlined text-[12px]">lock</span>
+</button>
+</div>
+</div>
+<!-- Board Cards Display & Touch Selector -->
+<div class="px-margin py-space-xs">
+<div class="bg-surface-container-low rounded-2xl p-space-sm shadow-md">
+<div class="flex items-center justify-between mb-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[16px]">dashboard_customize</span>
+<span class="font-headline-sm text-[13px] tracking-wide text-on-surface uppercase">Mesa Comunitaria</span>
+</div>
+<span class="font-label-data text-label-badge text-primary-fixed-dim">FLOP COMPLETO</span>
+</div>
+<!-- 5 Community Card Slots -->
+<div class="grid grid-cols-5 gap-1.5">
+<!-- Flop Card 1: K of Spades -->
+<div class="h-20 bg-surface-container-highest rounded-xl flex flex-col justify-between p-1.5 text-on-surface shadow-inner relative group">
+<div class="flex justify-between items-start">
+<span class="font-mono-bet-input text-headline-sm font-bold leading-none">K</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div class="self-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div class="text-right">
+<span class="font-label-badge text-[8px] text-on-surface-variant">FLOP 1</span>
+</div>
+</div>
+<!-- Flop Card 2: 9 of Hearts -->
+<div class="h-20 bg-surface-container-highest rounded-xl flex flex-col justify-between p-1.5 text-error shadow-inner relative">
+<div class="flex justify-between items-start">
+<span class="font-mono-bet-input text-headline-sm font-bold leading-none">9</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="self-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="text-right">
+<span class="font-label-badge text-[8px] text-on-surface-variant">FLOP 2</span>
+</div>
+</div>
+<!-- Flop Card 3: 4 of Diamonds -->
+<div class="h-20 bg-surface-container-highest rounded-xl flex flex-col justify-between p-1.5 text-secondary shadow-inner relative">
+<div class="flex justify-between items-start">
+<span class="font-mono-bet-input text-headline-sm font-bold leading-none">4</span>
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
+</div>
+<div class="self-center">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
+</div>
+<div class="text-right">
+<span class="font-label-badge text-[8px] text-on-surface-variant">FLOP 3</span>
+</div>
+</div>
+<!-- Turn Slot (Active quick-slot) -->
+<button class="h-20 bg-surface-container-high rounded-xl flex flex-col items-center justify-center p-1 text-secondary shadow-sm active:scale-95 transition-all" type="button">
+<div class="w-6 h-6 rounded-full bg-secondary/15 flex items-center justify-center mb-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">add</span>
+</div>
+<span class="font-label-badge text-[11px] font-bold text-secondary">TURN</span>
+<span class="font-label-badge text-[8px] text-on-surface-variant uppercase">Tocar</span>
+</button>
+<!-- River Slot (Disabled) -->
+<div class="h-20 bg-surface-container-lowest/60 rounded-xl flex flex-col items-center justify-center p-1 text-outline opacity-40">
+<span class="material-symbols-outlined text-[16px] mb-1">lock</span>
+<span class="font-label-badge text-[10px]">RIVER</span>
+<span class="font-label-badge text-[8px]">Bloqueado</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Table Action Track & Opponents State -->
+<div class="px-margin py-space-xs">
+<div class="bg-surface-container-low rounded-2xl p-space-sm shadow-md">
+<div class="flex items-center justify-between mb-2">
+<span class="font-label-badge text-label-badge text-on-surface-variant uppercase tracking-wider">Orden de Jugadores en el Bote</span>
+<span class="font-label-data text-label-badge text-secondary font-semibold">3 en la mano</span>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<!-- Opponent 1: MP (Checked) -->
+<div class="bg-surface-container-high p-2 rounded-xl flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-badge text-label-badge font-bold text-on-surface">MP</span>
+<span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+</div>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Frente a Hero</span>
+<div class="mt-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-primary font-label-badge text-[10px] font-bold">CHECK</span>
+</div>
+</div>
+<!-- HERO: CO (Turn to act) -->
+<div class="bg-primary/10 p-2 rounded-xl flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1">
+<span class="w-4 h-4 rounded-full bg-primary text-on-primary font-bold text-[9px] flex items-center justify-center">H</span>
+<span class="font-label-badge text-label-badge font-bold text-primary">HERO (CO)</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-sm"></span>
+</div>
+<span class="font-body-sm text-[11px] text-primary-fixed-dim">Turno de Hero</span>
+<div class="mt-1">
+<span class="px-1.5 py-0.5 rounded bg-primary text-on-primary font-label-badge text-[10px] font-bold">ACCIONANDO</span>
+</div>
+</div>
+<!-- Opponent 2: BTN (In position, waiting) -->
+<div class="bg-surface-container-high p-2 rounded-xl flex flex-col justify-between shadow-sm">
+<div class="flex items-center justify-between mb-1">
+<div class="flex items-center gap-1">
+<span class="font-label-badge text-label-badge font-bold text-on-surface">BTN</span>
+<span class="w-3.5 h-3.5 rounded-full bg-amber-400 text-black font-bold text-[8px] flex items-center justify-center">D</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+</div>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Último actor</span>
+<div class="mt-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-outline font-label-badge text-[10px]">EN ESPERA</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pot Metrics & Sizing Stage -->
+<div class="px-margin py-space-xs">
+<div class="bg-surface-container-high rounded-2xl p-space-sm flex items-center justify-between shadow-md">
+<div class="flex flex-col">
+<span class="font-label-badge text-[10px] uppercase text-on-surface-variant">Bote en Mesa (Flop)</span>
+<div class="flex items-baseline gap-1.5">
+<span class="font-mono-pot-display text-mono-pot-display text-primary leading-tight font-bold">$8.500</span>
+<span class="font-label-data text-label-data text-on-surface-variant">17 BB</span>
+</div>
+</div>
+<!-- Fine Increment Stepper -->
+<div class="flex items-center bg-surface-container-lowest p-1 rounded-xl shadow-inner gap-1">
+<button class="w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-90 flex items-center justify-center text-on-surface shadow-sm transition-all" id="btn-decrement" type="button">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<div class="px-2 flex flex-col items-center min-w-[70px]">
+<span class="font-label-badge text-[9px] text-on-surface-variant">APUESTA</span>
+<span class="font-mono-bet-input text-headline-sm text-secondary font-bold leading-none" id="bet-display">$4.200</span>
+</div>
+<button class="w-9 h-9 rounded-lg bg-surface-container-high hover:bg-surface-bright active:scale-90 flex items-center justify-center text-on-surface shadow-sm transition-all" id="btn-increment" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Smart Sizing Pills (% del Pozo & All-In) -->
+<div class="px-margin py-space-xs">
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-badge text-[10px] uppercase tracking-wider text-on-surface-variant">Tamaños Inteligentes de Bote</span>
+<span class="font-label-data text-[10px] text-primary">50% Seleccionado</span>
+</div>
+<div class="grid grid-cols-5 gap-1.5">
+<!-- 33% Pot -->
+<button class="sizing-pill flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface-variant active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-badge text-label-badge font-bold">33%</span>
+<span class="font-label-data text-[10px]">$2.8K</span>
+</button>
+<!-- 50% Pot (Active default) -->
+<button class="sizing-pill active-pill flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-secondary text-on-secondary shadow-md active:scale-95 transition-all" type="button">
+<span class="font-label-badge text-label-badge font-bold">50%</span>
+<span class="font-label-data text-[10px] font-bold">$4.2K</span>
+</button>
+<!-- 75% Pot -->
+<button class="sizing-pill flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface-variant active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-badge text-label-badge font-bold">75%</span>
+<span class="font-label-data text-[10px]">$6.4K</span>
+</button>
+<!-- 100% Pot -->
+<button class="sizing-pill flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface-variant active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-badge text-label-badge font-bold">POT</span>
+<span class="font-label-data text-[10px]">$8.5K</span>
+</button>
+<!-- ALL-IN -->
+<button class="sizing-pill flex flex-col items-center justify-center py-2 px-1 rounded-xl bg-error-container text-on-error-container hover:opacity-90 active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-badge text-label-badge font-bold">ALL-IN</span>
+<span class="font-label-data text-[10px]">$88.5K</span>
+</button>
+</div>
+</div>
+<!-- Primary Postflop Action Console (Thumb-First 4-button array) -->
+<div class="px-margin py-space-xs">
+<div class="bg-surface-container-lowest p-2 rounded-2xl shadow-inner">
+<div class="flex items-center justify-between mb-1.5 px-1">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-label-action text-label-action text-on-surface font-bold">Acción de Hero (Flop)</span>
+</div>
+<span class="font-label-data text-[11px] text-on-surface-variant">Rango: Agresivo</span>
+</div>
+<div class="grid grid-cols-4 gap-2">
+<!-- CHECK Button -->
+<button class="h-14 rounded-xl bg-surface-container-high text-on-surface flex flex-col items-center justify-center active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-action text-label-action uppercase">Check</span>
+<span class="font-label-data text-[10px] text-on-surface-variant">Paso</span>
+</button>
+<!-- BET Button (Active Highlight) -->
+<button class="h-14 rounded-xl bg-tertiary-container text-on-tertiary-container shadow-lg flex flex-col items-center justify-center active:scale-95 transition-all" type="button">
+<div class="flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[16px]">local_fire_department</span>
+<span class="font-label-action text-label-action uppercase font-bold">Bet</span>
+</div>
+<span class="font-label-data text-[10px] font-bold text-on-tertiary-container" id="bet-button-amount">$4.200</span>
+</button>
+<!-- CALL Button -->
+<button class="h-14 rounded-xl bg-surface-container-high text-on-surface flex flex-col items-center justify-center opacity-70 active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-action text-label-action uppercase">Call</span>
+<span class="font-label-data text-[10px] text-on-surface-variant">$0</span>
+</button>
+<!-- FOLD Button -->
+<button class="h-14 rounded-xl bg-surface-container-low text-on-surface-variant flex flex-col items-center justify-center active:scale-95 transition-all shadow-sm" type="button">
+<span class="font-label-action text-label-action uppercase">Fold</span>
+<span class="font-label-data text-[10px] text-outline">Retirarse</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Tactical Quick Card Picker Modal Drawer (Integrated Inline for Rapid Selection) -->
+<div class="px-margin pt-space-xs pb-space-sm">
+<details class="group bg-surface-container-low rounded-2xl overflow-hidden shadow-md">
+<summary class="list-none flex items-center justify-between p-3 cursor-pointer select-none bg-surface-container-high">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">style</span>
+<span class="font-headline-sm text-[13px] text-on-surface">Teclado Táctil de Cartas (Turn &amp; River)</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="font-label-badge text-[10px]">DESPLEGAR</span>
+<span class="material-symbols-outlined text-[18px] group-open:rotate-180 transition-transform">expand_more</span>
+</div>
+</summary>
+<div class="p- space-sm p-3 bg-surface-container-lowest">
+<!-- Ranks 13-matrix -->
+<div class="grid grid-cols-7 gap-1.5 mb-2">
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">A</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">K</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">Q</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">J</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">T</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">9</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">8</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">7</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">6</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">5</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">4</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary" type="button">3</button>
+<button class="h-8 rounded bg-surface-container-high text-on-surface font-mono-bet-input text-label-action active:bg-primary active:text-on-primary col-span-2" type="button">2</button>
+</div>
+<!-- Suits Matrix 4-buttons -->
+<div class="grid grid-cols-4 gap-2">
+<!-- Spades -->
+<button class="h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-on-surface active:scale-95 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">eco</span>
+</button>
+<!-- Hearts -->
+<button class="h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-error active:scale-95 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+<!-- Diamonds -->
+<button class="h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-secondary active:scale-95 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">diamond</span>
+</button>
+<!-- Clubs -->
+<button class="h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary active:scale-95 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+</button>
+</div>
+</div>
+</details>
+</div>
+<!-- Bottom Execution Bar -->
+<div class="px-margin pb-space-lg flex items-center gap-space-sm">
+<!-- Undo / Backstep Button -->
+<button class="w-14 h-14 rounded-2xl bg-surface-container-high hover:bg-surface-bright active:scale-90 flex flex-col items-center justify-center text-on-surface shadow-md transition-all shrink-0" type="button">
+<span class="material-symbols-outlined text-[22px]">undo</span>
+<span class="font-label-badge text-[9px] uppercase tracking-wider text-on-surface-variant">Deshacer</span>
+</button>
+<!-- Main Progression Button: Avanzar a Turn o Revisar Mano -->
+<button class="flex-1 h-14 rounded-2xl bg-primary text-on-primary font-headline-md text-headline-md flex items-center justify-center gap-2 shadow-[0_4px_24px_rgba(78,222,163,0.35)] active:scale-[0.98] transition-all" id="btn-save-hand" type="button">
+<span class="material-symbols-outlined text-[24px]">verified</span>
+<span>Revisar y Guardar Mano</span>
+</button>
+</div>
+</div>
+<script>
+  // Simple interactive sizing simulation for postflop betting
+  let currentBet = 4200;
+  const potSize = 8500;
+  const betDisplay = document.getElementById('bet-display');
+  const betButtonAmount = document.getElementById('bet-button-amount');
+
+  function updateBetDisplay(val) {
+    currentBet = Math.max(0, val);
+    const formatted = '$' + currentBet.toLocaleString('es-ES');
+    if (betDisplay) betDisplay.textContent = formatted;
+    if (betButtonAmount) betButtonAmount.textContent = formatted;
+  }
+
+  document.getElementById('btn-increment')?.addEventListener('click', () => {
+    updateBetDisplay(currentBet + 500);
+  });
+
+  document.getElementById('btn-decrement')?.addEventListener('click', () => {
+    updateBetDisplay(Math.max(500, currentBet - 500));
+  });
+
+  // Smart Sizing Pill Logic
+  const sizingPills = document.querySelectorAll('.sizing-pill');
+  sizingPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      sizingPills.forEach(p => {
+        p.classList.remove('bg-secondary', 'text-on-secondary', 'bg-tertiary-container', 'text-on-tertiary-container');
+        p.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+      });
+      pill.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+      pill.classList.add('bg-secondary', 'text-on-secondary');
+
+      const text = pill.innerText;
+      if (text.includes('33%')) updateBetDisplay(2800);
+      else if (text.includes('50%')) updateBetDisplay(4200);
+      else if (text.includes('75%')) updateBetDisplay(6400);
+      else if (text.includes('POT')) updateBetDisplay(8500);
+      else if (text.includes('ALL-IN')) updateBetDisplay(88500);
+    });
+  });
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6)]" data-active-classes="text-primary shadow-[inset_0_1px_0_rgba(78,222,163,0.3)] bg-surface-container/60"><div class="h-20 px-space-xs grid grid-cols-4 items-center"><a class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg text-on-surface-variant transition-colors" data-path="nueva-sesion" href="#"><span class="material-symbols-outlined text-[24px]">add_circle</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">NUEVA</span></a><a class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg text-on-surface-variant transition-colors" data-path="mesa-en-vivo" href="#"><span class="material-symbols-outlined text-[24px]">table_restaurant</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">MESA</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg transition-colors text-primary shadow-[inset_0_1px_0_rgba(78,222,163,0.3)] bg-surface-container/60" data-path="grabar-mano" href="#"><span class="material-symbols-outlined text-[24px]">edit_document</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">GRABAR</span></a><a class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg text-on-surface-variant transition-colors" data-path="historial-stats" href="#"><span class="material-symbols-outlined text-[24px]">query_stats</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">STATS</span></a></div></nav></body></html>

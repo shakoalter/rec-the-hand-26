@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;background-color:#0f131b;color:#dfe2ed;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-bright": "#353941", "on-error-container": "#ffdad6", "inverse-primary": "#006c49", "secondary": "#7bd0ff", "on-background": "#dfe2ed", "primary-fixed": "#6ffbbe", "on-tertiary": "#68000a", "tertiary-fixed": "#ffdad7", "tertiary": "#ffb3ad", "on-tertiary-fixed-variant": "#930013", "on-tertiary-container": "#79000e", "background": "#0f131b", "on-primary": "#003824", "outline-variant": "#3c4a42", "on-secondary": "#00354a", "on-primary-fixed-variant": "#005236", "on-surface-variant": "#bbcabf", "surface": "#0f131b", "primary-fixed-dim": "#4edea3", "on-tertiary-fixed": "#410004", "error": "#ffb4ab", "tertiary-fixed-dim": "#ffb3ad", "on-surface": "#dfe2ed", "secondary-fixed-dim": "#7bd0ff", "primary": "#4edea3", "surface-container": "#1c2027", "on-secondary-fixed": "#001e2c", "primary-container": "#10b981", "on-secondary-fixed-variant": "#004c69", "surface-container-lowest": "#0a0e15", "on-primary-fixed": "#002113", "surface-variant": "#31353d", "on-error": "#690005", "on-secondary-container": "#00374d", "surface-tint": "#4edea3", "surface-dim": "#0f131b", "inverse-on-surface": "#2d3038", "on-primary-container": "#00422b", "surface-container-high": "#262a32", "surface-container-highest": "#31353d", "secondary-fixed": "#c4e7ff", "inverse-surface": "#dfe2ed", "surface-container-low": "#181c23", "secondary-container": "#00a6e0", "error-container": "#93000a", "tertiary-container": "#ff7a73", "outline": "#86948a" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "0.75rem", "space-md": "0.75rem", "space-xs": "0.25rem", "margin": "1rem", "space-xl": "1.5rem", "space-lg": "1rem", "space-sm": "0.5rem" }, "fontFamily": { "headline-sm": ["Space Grotesk"], "label-badge": ["JetBrains Mono"], "label-action": ["Space Grotesk"], "body-lg": ["Plus Jakarta Sans"], "headline-xl-mobile": ["Space Grotesk"], "mono-bet-input": ["JetBrains Mono"], "label-data": ["JetBrains Mono"], "body-md": ["Plus Jakarta Sans"], "mono-pot-display": ["JetBrains Mono"], "headline-md": ["Space Grotesk"], "body-sm": ["Plus Jakarta Sans"], "headline-lg": ["Space Grotesk"], "headline-lg-mobile": ["Space Grotesk"], "headline-xl": ["Space Grotesk"] }, "fontSize": { "headline-sm": ["16px", { "lineHeight": "22px", "fontWeight": "600" }], "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.06em", "fontWeight": "700" }], "label-action": ["14px", { "lineHeight": "18px", "letterSpacing": "0.04em", "fontWeight": "700" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "500" }], "headline-xl-mobile": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "mono-bet-input": ["24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "label-data": ["13px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "mono-pot-display": ["32px", { "lineHeight": "36px", "letterSpacing": "-0.04em", "fontWeight": "700" }], "headline-md": ["20px", { "lineHeight": "26px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "headline-lg-mobile": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }], "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.03em", "fontWeight": "700" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface-container-lowest/85 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary shadow-[0_0_12px_rgba(78,222,163,0.25)]"><span class="material-symbols-outlined text-[20px]">token</span></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">RecTheHand26</span><span class="font-label-badge text-label-badge px-1 py-0.5 rounded bg-primary-container text-on-primary-container leading-none uppercase">PRO</span></div><div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_6px_#4edea3]"></span><span class="font-label-badge text-label-badge text-primary uppercase">Mesa En Vivo</span></div></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1 px-2 py-1 rounded bg-surface-container-low text-on-surface-variant font-label-data text-label-data"><span class="material-symbols-outlined text-secondary text-[16px]">wifi_tethering</span><span class="material-symbols-outlined text-primary text-[16px]">battery_charging_full</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex-1 flex flex-col w-full bg-surface pt-16 pb-24"><div class="flex flex-col w-full px-margin pb-28 pt-2">
+<!-- TOP LIVE BAR (Header Utility) -->
+<div class="flex items-center justify-between gap-space-sm bg-surface-container-low/95 p-3 rounded-xl shadow-lg backdrop-blur-md mb-3">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="relative flex items-center justify-center w-9 h-9 rounded-lg bg-surface-container-high text-primary shrink-0 shadow-inner">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">table_restaurant</span>
+<span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary animate-ping"></span>
+<span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-primary"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5 truncate">
+<span class="font-headline-sm text-headline-sm text-on-surface tracking-tight truncate">Mesa 9-Max</span>
+<span class="font-label-badge text-label-badge px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary tracking-wider">$1K/$1K</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-label-data text-label-data">
+<span class="material-symbols-outlined text-[14px] text-secondary">timer</span>
+<span class="font-label-badge text-label-badge text-secondary font-bold" id="session-timer">01:42:15</span>
+<span class="text-outline text-[10px]">•</span>
+<span class="text-[11px] text-on-surface-variant">Casino Club</span>
+</div>
+</div>
+</div>
+<!-- Finalizar Cash-out Action -->
+<button class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-error-container/40 hover:bg-error-container text-tertiary shadow-[0_0_12px_rgba(255,122,115,0.25)] transition-all active:scale-95" id="btn-cashout">
+<span class="material-symbols-outlined text-[16px]">logout</span>
+<span class="font-label-action text-label-action tracking-wide whitespace-nowrap">Cash-out</span>
+</button>
+</div>
+<!-- HERO HUD CARD (High-Tech Felt Tactical Container) -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container/90 backdrop-blur-xl p-4 shadow-xl mb-4">
+<!-- Ambient Neon Felt Backdrop Gradients -->
+<div class="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+<div class="absolute -left-12 -bottom-12 w-44 h-44 rounded-full bg-secondary/10 blur-3xl pointer-events-none"></div>
+<!-- Hero Net Balance Header -->
+<div class="flex items-start justify-between pb-3.5 mb-3.5 bg-surface-container-lowest/50 -mx-4 -mt-4 px-4 pt-4 shadow-inner">
+<div class="flex flex-col">
+<span class="font-label-badge text-label-badge text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+          Pot Ganado Sesión
+        </span>
+<div class="flex items-baseline gap-2 mt-0.5">
+<span class="font-mono-pot-display text-mono-pot-display text-primary font-bold tracking-tight drop-shadow-[0_0_12px_rgba(78,222,163,0.35)]">+$48.500</span>
+<span class="font-label-badge text-label-badge px-2 py-0.5 rounded-full bg-primary/15 text-primary font-bold">+48.5 BB</span>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-badge text-label-badge text-on-surface-variant uppercase tracking-wider">Stack Actual</span>
+<span class="font-mono-bet-input text-mono-bet-input text-secondary font-bold">$98.500</span>
+<span class="text-[11px] font-label-badge text-outline tracking-tight">Buy-in inicial: $50.000</span>
+</div>
+</div>
+<!-- Metrics Tactical Grid (HUD) -->
+<div class="grid grid-cols-4 gap-2">
+<!-- Metric 1: Manos -->
+<div class="flex flex-col p-2.5 rounded-lg bg-surface-container-high/70 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-[10px] text-on-surface-variant leading-tight">MANOS</span>
+<span class="material-symbols-outlined text-[14px] text-primary">playing_cards</span>
+</div>
+<span class="font-mono-bet-input text-[20px] text-on-surface font-bold mt-1">18</span>
+<span class="text-[10px] font-label-badge text-primary mt-0.5 truncate">+14.2 BB/h</span>
+</div>
+<!-- Metric 2: VPIP -->
+<div class="flex flex-col p-2.5 rounded-lg bg-surface-container-high/70 shadow-sm relative overflow-hidden">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-[10px] text-on-surface-variant leading-tight">VPIP</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_#4edea3]"></span>
+</div>
+<span class="font-mono-bet-input text-[20px] text-primary font-bold mt-1">22%</span>
+<span class="text-[10px] font-label-badge text-primary-fixed-dim mt-0.5">Óptimo (GTO)</span>
+</div>
+<!-- Metric 3: PFR -->
+<div class="flex flex-col p-2.5 rounded-lg bg-surface-container-high/70 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-[10px] text-on-surface-variant leading-tight">PFR</span>
+<span class="material-symbols-outlined text-[14px] text-secondary">trending_up</span>
+</div>
+<span class="font-mono-bet-input text-[20px] text-secondary font-bold mt-1">17%</span>
+<span class="text-[10px] font-label-badge text-on-surface-variant mt-0.5">GAP 5% (Solid)</span>
+</div>
+<!-- Metric 4: 3-BET -->
+<div class="flex flex-col p-2.5 rounded-lg bg-surface-container-high/70 shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-badge text-[10px] text-on-surface-variant leading-tight">3-BET</span>
+<span class="material-symbols-outlined text-[14px] text-tertiary">local_fire_department</span>
+</div>
+<span class="font-mono-bet-input text-[20px] text-tertiary font-bold mt-1">8.5%</span>
+<span class="text-[10px] font-label-badge text-on-surface-variant mt-0.5">Agresivo</span>
+</div>
+</div>
+<!-- Quick Mini-Stats Footer -->
+<div class="flex items-center justify-between pt-2.5 mt-2.5 text-on-surface-variant text-[11px] font-label-data">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px] text-secondary">pie_chart</span>
+<span>C-Bet Flop: <strong class="text-on-surface">66% (4/6)</strong></span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[13px] text-primary">verified</span>
+<span>WTSD: <strong class="text-on-surface">28%</strong> • W$SD: <strong class="text-primary">62%</strong></span>
+</div>
+</div>
+</div>
+<!-- QUICK ACTION UTILITY BAR -->
+<div class="grid grid-cols-2 gap-2 mb-4">
+<!-- Export Session Button Modal Trigger -->
+<button class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface shadow-md active:scale-[0.98] transition-all" id="btn-export-session">
+<span class="material-symbols-outlined text-secondary text-[18px]">ios_share</span>
+<span class="font-label-action text-label-action truncate">Exportar Sesión</span>
+</button>
+<!-- Adjust Stack Button Modal Trigger -->
+<button class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface shadow-md active:scale-[0.98] transition-all" id="btn-adjust-stack">
+<span class="material-symbols-outlined text-primary text-[18px]">account_balance_wallet</span>
+<span class="font-label-action text-label-action truncate">Ajustar Stack</span>
+</button>
+</div>
+<!-- LIVE HANDS FEED HEADER -->
+<div class="flex items-center justify-between mb-2.5 px-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-secondary">history</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider">Historial de Manos</h2>
+<span class="font-label-badge text-label-badge px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold">18</span>
+</div>
+<div class="flex items-center gap-1 text-[11px] font-label-data text-on-surface-variant">
+<span>Filtrar:</span>
+<button class="px-1.5 py-0.5 rounded bg-surface-container text-primary font-bold">Todas</button>
+<button class="px-1.5 py-0.5 rounded text-on-surface-variant hover:text-on-surface">Botes</button>
+</div>
+</div>
+<!-- INTERACTIVE HANDS FEED -->
+<div class="flex flex-col gap-2.5" id="hands-feed-list">
+<!-- HAND #18 (Big Win - Pot Won) -->
+<div class="hand-card flex flex-col p-3 rounded-xl bg-surface-container hover:bg-surface-bright/70 transition-all cursor-pointer shadow-md active:scale-[0.99] relative overflow-hidden" data-hand-id="18">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<!-- Top Row: Hand ID + Position + Cards + Result -->
+<div class="flex items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2">
+<span class="font-label-badge text-label-badge px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-bold">#18</span>
+<div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 font-label-badge text-[11px] font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            BTN
+          </div>
+<!-- Hero Pocket Cards (4-Color Standard) -->
+<div class="flex items-center gap-1 ml-0.5">
+<!-- A Spade (Black/White high-contrast) -->
+<div class="flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-900 text-white shadow-sm font-label-badge text-[12px] font-bold">
+<span>A</span><span class="text-slate-100 ml-0.5 text-[10px]">♠</span>
+</div>
+<!-- K Diamond (Blue 4-Color) -->
+<div class="flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-900 text-secondary shadow-sm font-label-badge text-[12px] font-bold">
+<span>K</span><span class="ml-0.5 text-[10px]">♦</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="flex flex-col items-end">
+<span class="font-label-badge text-label-badge text-primary font-bold">+$8.500</span>
+<span class="text-[10px] font-label-badge text-primary-fixed-dim">+8.5 BB</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
+</div>
+</div>
+<!-- Action Sequence Storyline -->
+<div class="flex flex-col gap-1.5 text-body-sm text-body-sm text-on-surface-variant bg-surface-container-lowest/60 p-2 rounded-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-[12px]">
+<span class="text-primary font-semibold">Preflop:</span>
+<span>Hero Raise $3K (3 BB). SB &amp; BB Call.</span>
+</div>
+<span class="font-label-badge text-[10px] text-on-surface-variant">Pot: $9.5K</span>
+</div>
+<!-- Flop Community Board (4-Color Deck) -->
+<div class="flex items-center justify-between pt-1 border-none">
+<div class="flex items-center gap-1">
+<span class="text-secondary font-semibold text-[12px]">Flop:</span>
+<!-- K Spade -->
+<div class="px-1 py-0.2 rounded bg-slate-950 text-white font-label-badge text-[11px]">K♠</div>
+<!-- 7 Heart (Red) -->
+<div class="px-1 py-0.2 rounded bg-slate-950 text-tertiary-container font-label-badge text-[11px]">7♥</div>
+<!-- 2 Club (Green) -->
+<div class="px-1 py-0.2 rounded bg-slate-950 text-primary font-label-badge text-[11px]">2♣</div>
+</div>
+<span class="text-[11px] text-on-surface font-medium truncate">C-bet $4.5K • Rivales Fold</span>
+</div>
+</div>
+<!-- Bottom Tags & Micro Prompt -->
+<div class="flex items-center justify-between mt-2 pt-1">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary font-label-badge text-[10px] font-bold uppercase">Pot Won</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-badge text-[10px]">Top Pair TK</span>
+</div>
+<span class="text-[11px] text-outline font-label-data flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">touch_app</span> Tocar para editar
+        </span>
+</div>
+</div>
+<!-- HAND #17 (Tough 3-Bet Loss) -->
+<div class="hand-card flex flex-col p-3 rounded-xl bg-surface-container hover:bg-surface-bright/70 transition-all cursor-pointer shadow-md active:scale-[0.99] relative overflow-hidden" data-hand-id="17">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-container"></div>
+<!-- Top Row -->
+<div class="flex items-center justify-between gap-2 mb-2">
+<div class="flex items-center gap-2">
+<span class="font-label-badge text-label-badge px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-bold">#17</span>
+<div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-highest text-secondary font-label-badge text-[11px] font-bold">
+            CO
+          </div>
+<!-- Hero Pocket Cards QJs suited Hearts (Red) -->
+<div class="flex items-center gap-1 ml-0.5">
+<div class="flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-900 text-tertiary-container shadow-sm font-label-badge text-[12px] font-bold">
+<span>Q</span><span class="ml-0.5 text-[10px]">♥</span>
+</div>
+<div class="flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-900 text-tertiary-container shadow-sm font-label-badge text-[12px] font-bold">
+<span>J</span><span class="ml-0.5 text-[10px]">♥</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="flex flex-col items-end">
+<span class="font-label-badge text-label-badge text-tertiary font-bold">-$9.000</span>
+<span class="text-[10px] font-label-badge text-tertiary-fixed-dim">-9.0 BB</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
+</div>
+</div>
+<!-- Action Sequence Storyline -->
+<div class="flex flex-col gap-1.5 text-body-sm text-body-sm text-on-surface-variant bg-surface-container-lowest/60 p-2 rounded-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1 text-[12px]">
+<span class="text-tertiary-container font-semibold">Preflop:</span>
+<span>UTG Open $2.5K, Hero 3-Bet $9K, UTG Call.</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-1">
+<span class="text-secondary font-semibold text-[12px]">Flop:</span>
+<!-- A Diamond -->
+<div class="px-1 py-0.2 rounded bg-slate-950 text-secondary font-label-badge text-[11px]">A♦</div>
+<!-- 8 Spade -->
+<div class="px-1 py-0.2 rounded bg-slate-950 text-white font-label-badge text-[11px]">8♠</div>
+<!-- 4 Club -->
+<div class="px-1 py-0.2 rounded bg-slate-950 text-primary font-label-badge text-[11px]">4♣</div>
+</div>
+<span class="text-[11px] text-tertiary font-medium">UTG Donk-Bet $11K • Hero Fold</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-2 pt-1">
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded bg-error-container/40 text-tertiary font-label-badge text-[10px] font-bold uppercase">Fold Flop</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-badge text-[10px]">Whiffed Ace-high</span>
+</div>
+<span class="text-[11px] text-outline font-label-data flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">touch_app</span> Tocar para editar
+        </span>
+</div>
+</div>
+<!-- HAND #16 (Disciplined UTG Fold) -->
+<div class="hand-card flex flex-col p-3 rounded-xl bg-surface-container hover:bg-surface-bright/70 transition-all cursor-pointer shadow-md active:scale-[0.99] relative overflow-hidden" data-hand-id="16">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-outline-variant"></div>
+<!-- Top Row -->
+<div class="flex items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-badge text-label-badge px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-bold">#16</span>
+<div class="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-badge text-[11px]">
+            UTG
+          </div>
+<!-- Hero Pocket Cards 7s 2d (Trash fold) -->
+<div class="flex items-center gap-1 ml-0.5 opacity-70">
+<div class="flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-900 text-white shadow-sm font-label-badge text-[12px]">
+<span>7</span><span class="ml-0.5 text-[10px]">♠</span>
+</div>
+<div class="flex items-center justify-center px-1.5 py-0.5 rounded bg-slate-900 text-secondary shadow-sm font-label-badge text-[12px]">
+<span>2</span><span class="ml-0.5 text-[10px]">♦</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<div class="flex flex-col items-end">
+<span class="font-label-badge text-label-badge text-on-surface-variant font-medium">$0</span>
+<span class="text-[10px] font-label-badge text-outline">0 BB</span>
+</div>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
+</div>
+</div>
+<div class="flex items-center justify-between mt-2 pt-1 text-[11px] text-on-surface-variant">
+<span class="italic">Fold rápido preflop según tabla GTO.</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-badge text-[10px]">Fold Pre</span>
+</div>
+</div>
+</div>
+<!-- FLOATING ERGONOMIC THUMB CTA (Registrar Mano #19) -->
+<div class="fixed bottom-20 left-0 right-0 z-40 px-margin pointer-events-none">
+<div class="max-w-md mx-auto w-full pointer-events-auto">
+<button class="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl bg-gradient-to-r from-emerald-500 via-primary to-emerald-400 text-on-primary font-headline-md text-headline-md tracking-tight shadow-[0_6px_25px_rgba(78,222,163,0.45)] hover:brightness-105 active:scale-[0.98] transition-all" id="btn-new-hand">
+<span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span>Registrar Mano <span class="font-label-badge text-label-badge px-2 py-0.5 rounded bg-on-primary/20 text-on-primary font-bold">#19</span></span>
+</button>
+</div>
+</div>
+<!-- MODAL: AJUSTAR STACK (Hidden Drawer) -->
+<div class="fixed inset-0 z-50 bg-surface-container-lowest/80 backdrop-blur-md hidden flex-col justify-end" id="modal-stack">
+<div class="bg-surface-container p-5 rounded-t-2xl shadow-2xl flex flex-col gap-4 animate-in slide-in-from-bottom duration-200">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">toll</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Ajustar Stack en Mesa</h3>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant" id="btn-close-stack">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="text-body-sm text-body-sm text-on-surface-variant">Modifica tu conteo de fichas actual para calcular con precisión las ganancias netas de la sesión.</p>
+<!-- Stepper / Input -->
+<div class="flex items-center justify-between bg-surface-container-lowest p-3 rounded-xl">
+<button class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface active:scale-90 transition-transform" id="btn-dec-stack">
+<span class="material-symbols-outlined text-[24px]">remove</span>
+</button>
+<div class="flex flex-col items-center">
+<span class="font-label-badge text-label-badge text-outline">Fichas en Mano</span>
+<span class="font-mono-bet-input text-mono-bet-input text-secondary font-bold" id="stack-val-display">$98.500</span>
+</div>
+<button class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-primary active:scale-90 transition-transform" id="btn-inc-stack">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</button>
+</div>
+<!-- Quick Add Pills -->
+<div class="grid grid-cols-4 gap-2">
+<button class="stack-quick-pill py-2 rounded-lg bg-surface-container-high text-on-surface text-label-badge font-label-badge hover:bg-surface-bright" data-val="5000">+$5.000</button>
+<button class="stack-quick-pill py-2 rounded-lg bg-surface-container-high text-on-surface text-label-badge font-label-badge hover:bg-surface-bright" data-val="10000">+$10.000</button>
+<button class="stack-quick-pill py-2 rounded-lg bg-surface-container-high text-on-surface text-label-badge font-label-badge hover:bg-surface-bright" data-val="25000">+$25.000</button>
+<button class="stack-quick-pill py-2 rounded-lg bg-surface-container-high text-tertiary text-label-badge font-label-badge hover:bg-surface-bright" data-val="-10000">-$10.000</button>
+</div>
+<button class="w-full py-3.5 rounded-xl bg-primary text-on-primary font-headline-sm text-headline-sm font-bold shadow-lg shadow-primary/30 mt-2" id="btn-save-stack">
+        Guardar Conteo
+      </button>
+</div>
+</div>
+<!-- MODAL: EXPORTAR SESIÓN (WhatsApp, ChatGPT, CSV) -->
+<div class="fixed inset-0 z-50 bg-surface-container-lowest/80 backdrop-blur-md hidden flex-col justify-end" id="modal-export">
+<div class="bg-surface-container p-5 rounded-t-2xl shadow-2xl flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">share</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Exportar Sesión en Vivo</h3>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant" id="btn-close-export">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="text-body-sm text-body-sm text-on-surface-variant">Elige el formato de compresión o análisis táctico para compartir tus 18 manos jugadas.</p>
+<div class="flex flex-col gap-2.5">
+<!-- WhatsApp Smart Share -->
+<button class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-high hover:bg-surface-bright text-left active:scale-[0.99] transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">chat</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">WhatsApp Inteligente</span>
+<span class="text-body-sm text-[12px] text-on-surface-variant">Resumen formateado con emojis para grupos de poker</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">send</span>
+</button>
+<!-- ChatGPT / Claude Prompt Format -->
+<button class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-high hover:bg-surface-bright text-left active:scale-[0.99] transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-secondary/20 text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">psychology</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Prompt para ChatGPT / Claude</span>
+<span class="text-body-sm text-[12px] text-on-surface-variant">Formato texto optimizado para análisis de leaks y rangos</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">content_copy</span>
+</button>
+<!-- CSV / JSON Raw Export -->
+<button class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-high hover:bg-surface-bright text-left active:scale-[0.99] transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-lowest text-on-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[22px]">data_object</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Formato Crudo (JSON / CSV)</span>
+<span class="text-body-sm text-[12px] text-on-surface-variant">Exportar para PokerTracker o Holdem Manager</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">download</span>
+</button>
+</div>
+</div>
+</div>
+<!-- INTERACTIVITY SCRIPT -->
+<script>
+    (function initLiveDashboard() {
+      // Live Timer increment simulation
+      let totalSeconds = 1 * 3600 + 42 * 60 + 15;
+      const timerDisplay = document.getElementById('session-timer');
+      setInterval(() => {
+        totalSeconds++;
+        const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(totalSeconds % 60).padStart(2, '0');
+        if (timerDisplay) timerDisplay.textContent = `${hrs}:${mins}:${secs}`;
+      }, 1000);
+
+      // Stack adjustment modal
+      let currentStack = 98500;
+      const modalStack = document.getElementById('modal-stack');
+      const btnOpenStack = document.getElementById('btn-adjust-stack');
+      const btnCloseStack = document.getElementById('btn-close-stack');
+      const btnSaveStack = document.getElementById('btn-save-stack');
+      const stackDisplay = document.getElementById('stack-val-display');
+      const btnInc = document.getElementById('btn-inc-stack');
+      const btnDec = document.getElementById('btn-dec-stack');
+
+      function formatStack(val) {
+        return '$' + val.toLocaleString('es-ES');
+      }
+
+      if (btnOpenStack && modalStack) {
+        btnOpenStack.addEventListener('click', () => {
+          modalStack.classList.remove('hidden');
+          modalStack.classList.add('flex');
+        });
+      }
+
+      if (btnCloseStack && modalStack) {
+        btnCloseStack.addEventListener('click', () => {
+          modalStack.classList.add('hidden');
+          modalStack.classList.remove('flex');
+        });
+      }
+
+      if (btnSaveStack && modalStack) {
+        btnSaveStack.addEventListener('click', () => {
+          modalStack.classList.add('hidden');
+          modalStack.classList.remove('flex');
+        });
+      }
+
+      if (btnInc) {
+        btnInc.addEventListener('click', () => {
+          currentStack += 1000;
+          stackDisplay.textContent = formatStack(currentStack);
+        });
+      }
+
+      if (btnDec) {
+        btnDec.addEventListener('click', () => {
+          if (currentStack >= 1000) {
+            currentStack -= 1000;
+            stackDisplay.textContent = formatStack(currentStack);
+          }
+        });
+      }
+
+      document.querySelectorAll('.stack-quick-pill').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+          const delta = parseInt(e.currentTarget.getAttribute('data-val'), 10);
+          currentStack = Math.max(0, currentStack + delta);
+          stackDisplay.textContent = formatStack(currentStack);
+        });
+      });
+
+      // Export Modal
+      const modalExport = document.getElementById('modal-export');
+      const btnOpenExport = document.getElementById('btn-export-session');
+      const btnCloseExport = document.getElementById('btn-close-export');
+
+      if (btnOpenExport && modalExport) {
+        btnOpenExport.addEventListener('click', () => {
+          modalExport.classList.remove('hidden');
+          modalExport.classList.add('flex');
+        });
+      }
+
+      if (btnCloseExport && modalExport) {
+        btnCloseExport.addEventListener('click', () => {
+          modalExport.classList.add('hidden');
+          modalExport.classList.remove('flex');
+        });
+      }
+
+      // Hand cards click micro-feedback
+      document.querySelectorAll('.hand-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = card.getAttribute('data-hand-id');
+          card.classList.add('brightness-125');
+          setTimeout(() => {
+            card.classList.remove('brightness-125');
+          }, 150);
+        });
+      });
+
+      // Bottom floating CTA action
+      const btnNewHand = document.getElementById('btn-new-hand');
+      if (btnNewHand) {
+        btnNewHand.addEventListener('click', () => {
+          btnNewHand.classList.add('scale-95');
+          setTimeout(() => {
+            btnNewHand.classList.remove('scale-95');
+          }, 120);
+        });
+      }
+    })();
+  </script>
+</div></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface-container-lowest/90 backdrop-blur-2xl shadow-[0_-4px_24px_rgba(0,0,0,0.6)]" data-active-classes="text-primary shadow-[inset_0_1px_0_rgba(78,222,163,0.3)] bg-surface-container/60"><div class="h-20 px-space-xs grid grid-cols-4 items-center"><a class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg text-on-surface-variant transition-colors" data-path="nueva-sesion" href="#"><span class="material-symbols-outlined text-[24px]">add_circle</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">NUEVA</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg transition-colors text-primary shadow-[inset_0_1px_0_rgba(78,222,163,0.3)] bg-surface-container/60" data-path="mesa-en-vivo" href="#"><span class="material-symbols-outlined text-[24px]">table_restaurant</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">MESA</span></a><a class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg text-on-surface-variant transition-colors" data-path="grabar-mano" href="#"><span class="material-symbols-outlined text-[24px]">edit_document</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">GRABAR</span></a><a class="flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-lg text-on-surface-variant transition-colors" data-path="historial-stats" href="#"><span class="material-symbols-outlined text-[24px]">query_stats</span><span class="font-label-badge text-label-badge text-center truncate max-w-full mt-0.5">STATS</span></a></div></nav></body></html>

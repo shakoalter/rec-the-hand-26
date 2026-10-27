@@ -77,51 +77,58 @@ export const CustomNumberModal: React.FC<CustomNumberModalProps> = ({
   const numDisplay = parseInt(strValue || '0', 10).toLocaleString('es-AR');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-3">
-      <div className="w-full max-w-sm bg-[#0E1724] border border-[#223348] rounded-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-bottom duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-2.5 sm:p-3">
+      <div className="w-full max-w-sm bg-[#0E1724] border border-[#223348] rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-bottom duration-200 max-h-[92dvh] overflow-y-auto">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white">{title}</h3>
+          <h3 className="text-base sm:text-lg font-bold text-white">{title}</h3>
           <button
+            type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#182638] flex items-center justify-center text-slate-400 hover:text-white"
+            className="w-9 h-9 rounded-full bg-[#182638] flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-all"
+            aria-label="Cerrar"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Display */}
-        <div className="bg-[#080E16] border border-[#1C2C3E] rounded-2xl py-4 px-6 text-center">
-          <span className="text-3xl font-extrabold text-poker-emerald tracking-wider">
+        <div className="bg-[#080E16] border border-[#1C2C3E] rounded-2xl py-3 sm:py-4 px-4 text-center">
+          <span className="text-2xl sm:text-3xl font-extrabold text-poker-emerald tracking-wider">
             $ {numDisplay}
           </span>
         </div>
 
-        {/* Keypad Grid */}
-        <div className="grid grid-cols-3 gap-2.5">
+        {/* Keypad Grid (Adaptativo para 320x568+) */}
+        <div className="grid grid-cols-3 gap-2">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
             <button
               key={d}
+              type="button"
               onClick={() => handleDigit(d)}
-              className="h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-xl font-bold text-white shadow-sm flex items-center justify-center transition-all active:scale-95"
+              className="h-12 sm:h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-xl font-bold text-white shadow-sm flex items-center justify-center transition-all active:scale-95"
             >
               {d}
             </button>
           ))}
           <button
+            type="button"
             onClick={handleClear}
-            className="h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-sm font-semibold text-slate-400 flex items-center justify-center transition-all active:scale-95"
+            className="h-12 sm:h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-sm font-bold text-slate-300 flex items-center justify-center transition-all active:scale-95"
           >
             C
           </button>
           <button
+            type="button"
             onClick={() => handleDigit('0')}
-            className="h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-xl font-bold text-white shadow-sm flex items-center justify-center transition-all active:scale-95"
+            className="h-12 sm:h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-xl font-bold text-white shadow-sm flex items-center justify-center transition-all active:scale-95"
           >
             0
           </button>
           <button
+            type="button"
             onClick={handleDelete}
-            className="h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-slate-300 flex items-center justify-center transition-all active:scale-95"
+            className="h-12 sm:h-14 bg-[#142132] active:bg-[#1E3048] rounded-xl text-slate-200 flex items-center justify-center transition-all active:scale-95"
+            aria-label="Borrar último dígito"
           >
             <Delete className="w-6 h-6" />
           </button>
@@ -129,8 +136,9 @@ export const CustomNumberModal: React.FC<CustomNumberModalProps> = ({
 
         {/* Confirm Button */}
         <button
+          type="button"
           onClick={handleConfirm}
-          className="w-full h-13 py-3.5 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark text-white font-bold rounded-xl shadow-neon-emerald flex items-center justify-center gap-2 active:scale-98 transition-all"
+          className="w-full h-12 sm:h-13 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark text-white font-bold rounded-xl shadow-neon-emerald flex items-center justify-center gap-2 active:scale-98 transition-all"
         >
           <Check className="w-5 h-5" /> Confirmar valor
         </button>

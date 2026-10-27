@@ -68,8 +68,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-sm bg-[#0E1724] border border-[#223348] rounded-3xl p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in slide-in-from-bottom duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4">
+      <div className="w-full max-w-sm bg-[#0E1724] border border-[#223348] rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col gap-3.5 animate-in fade-in slide-in-from-bottom duration-200 max-h-[88dvh] overflow-y-auto">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-white">Exportar Sesión</h3>

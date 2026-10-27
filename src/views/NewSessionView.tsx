@@ -72,9 +72,9 @@ export const NewSessionView: React.FC<NewSessionViewProps> = ({ onSessionStarted
       </div>
 
       {/* Scrollable Container for mobile ergonomics */}
-      <div className="flex-1 w-full max-w-md mx-auto px-4 pt-3 pb-24 flex flex-col gap-3.5 z-10">
+      <div className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-4 pt-2.5 pb-24 flex flex-col gap-2.5 z-10">
         {/* Header */}
-        <header className="flex items-center gap-3.5 pt-2 pb-1">
+        <header className="flex items-center gap-3 pt-1 pb-0.5">
           {/* Glowing neon cards logo */}
           <div className="relative w-12 h-12 flex-shrink-0">
             {/* Back card */}
