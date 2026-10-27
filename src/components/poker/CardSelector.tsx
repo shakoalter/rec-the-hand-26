@@ -103,8 +103,8 @@ export const CardSelector: React.FC<CardSelectorProps> = ({
     <div className="flex flex-col gap-2 bg-[#0A121D]/95 border border-[#1A293D] rounded-2xl p-3 shadow-xl select-none">
       {/* Cabecera Integrada con los Slots de Cartas Seleccionadas */}
       <div className="flex items-center justify-between gap-2 pb-0.5">
-        <div className="flex items-center gap-2">
-          <span className="text-xs sm:text-sm font-bold text-white tracking-wide">
+        <div className="flex items-center gap-1.5 xs:gap-2 min-w-0">
+          <span className="text-xs sm:text-sm font-bold text-white tracking-wide whitespace-nowrap">
             {label}
           </span>
 
@@ -116,7 +116,7 @@ export const CardSelector: React.FC<CardSelectorProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="h-9 px-2.5 rounded-xl border border-dashed border-slate-700 bg-slate-900/40 flex items-center justify-center text-slate-400 text-xs font-semibold min-w-[54px]"
+                    className="h-9 px-2 xs:px-2.5 rounded-xl border border-dashed border-slate-700 bg-slate-900/40 flex items-center justify-center text-slate-400 text-xs font-semibold min-w-[48px] xs:min-w-[54px] whitespace-nowrap"
                   >
                     Carta {idx + 1}
                   </div>
@@ -134,7 +134,7 @@ export const CardSelector: React.FC<CardSelectorProps> = ({
                     onRemoveCard(idx);
                   }}
                   title="Tocar para quitar esta carta"
-                  className="h-9 px-2.5 bg-white hover:bg-red-50 rounded-xl shadow-md border border-slate-200 flex items-center gap-1.5 active:scale-95 transition-all min-w-[58px] justify-between"
+                  className="h-9 px-2 xs:px-2.5 bg-white hover:bg-red-50 rounded-xl shadow-md border border-slate-200 flex items-center gap-1.5 active:scale-95 transition-all min-w-[54px] xs:min-w-[58px] justify-between"
                 >
                   <span className={cn('text-sm font-black flex items-center gap-0.5', suitInfo.cardTextClass)}>
                     <span>{card.rank}</span>
@@ -156,13 +156,15 @@ export const CardSelector: React.FC<CardSelectorProps> = ({
               setSelectedRank(null);
               setSelectedSuit(null);
             }}
-            className="h-9 px-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-red-400 flex items-center gap-1 bg-slate-800/60 border border-slate-700/60 active:scale-95 transition-all"
+            aria-label="Borrar cartas seleccionadas"
+            title="Borrar cartas seleccionadas"
+            className="h-9 px-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-red-400 flex items-center gap-1 bg-slate-800/60 border border-slate-700/60 active:scale-95 transition-all flex-shrink-0"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>Borrar</span>
+            <span className="hidden xs:inline">Borrar</span>
           </button>
         ) : (
-          <span className="text-[11px] font-medium text-slate-400">
+          <span className="text-[11px] font-medium text-slate-400 truncate text-right">
             {selectedRank
               ? `Elegí palo para ${selectedRank}`
               : selectedSuit

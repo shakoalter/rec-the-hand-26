@@ -36,8 +36,8 @@ export const SessionExtras: React.FC<SessionExtrasProps> = ({
       </div>
 
       {/* Straddle & Rake en 2 columnas compactas */}
-      <div className="grid grid-cols-2 gap-2.5 mb-2.5 relative z-10">
-        <div className="flex items-center justify-between bg-[#0A121D] border border-[#1E2E42] rounded-xl px-3 py-2">
+      <div className="grid grid-cols-2 gap-2 xs:gap-2.5 mb-2.5 relative z-10">
+        <div className="flex items-center justify-between bg-[#0A121D] border border-[#1E2E42] rounded-xl px-2.5 xs:px-3 py-2">
           <span className="text-xs sm:text-sm font-semibold text-white">Straddle</span>
           <ToggleSwitch
             checked={straddleEnabled}
@@ -46,7 +46,7 @@ export const SessionExtras: React.FC<SessionExtrasProps> = ({
           />
         </div>
 
-        <div className="flex items-center justify-between bg-[#0A121D] border border-[#1E2E42] rounded-xl px-3 py-2">
+        <div className="flex items-center justify-between bg-[#0A121D] border border-[#1E2E42] rounded-xl px-2.5 xs:px-3 py-2">
           <div className="flex items-center gap-1.5">
             <Coins className="w-3.5 h-3.5 text-slate-400 hidden xs:inline" />
             <span className="text-xs sm:text-sm font-semibold text-white">Rake</span>
@@ -67,9 +67,15 @@ export const SessionExtras: React.FC<SessionExtrasProps> = ({
           type="text"
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
+          onFocus={(e) => {
+            const target = e.currentTarget;
+            setTimeout(() => {
+              target?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+            }, 150);
+          }}
           placeholder="Nota opcional (Club, día, rivales...)"
           aria-label="Nota de la sesión"
-          className="w-full bg-transparent text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none"
+          className="w-full bg-transparent text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none"
         />
       </div>
     </GlassCard>

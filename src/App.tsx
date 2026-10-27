@@ -12,7 +12,7 @@ export const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#070C12] flex flex-col items-center justify-center text-white p-4">
+      <div className="min-h-[100dvh] bg-[#05080C] flex flex-col items-center justify-center text-white p-4">
         <div className="relative w-16 h-16 flex items-center justify-center">
           <div className="absolute inset-0 rounded-2xl bg-poker-emerald/20 animate-ping" />
           <div className="relative w-12 h-16 bg-[#0E1A27] border-2 border-poker-emerald rounded-xl flex items-center justify-center text-poker-emerald shadow-neon-emerald">
@@ -27,7 +27,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#070C12]">
+    <div className="w-full min-h-[100dvh] bg-[#05080C] sm:flex sm:justify-center">
       {activeSession ? (
         <SessionActiveView />
       ) : (

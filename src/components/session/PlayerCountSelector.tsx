@@ -37,8 +37,8 @@ export const PlayerCountSelector: React.FC<PlayerCountSelectorProps> = ({ value,
         <span className="text-[11px] text-slate-400">Incluyéndote</span>
       </div>
 
-      {/* 8 buttons selector row */}
-      <div className="grid grid-cols-8 gap-1.5">
+      {/* 8 buttons selector in 4x2 ergonomic grid */}
+      <div className="grid grid-cols-4 gap-2">
         {PLAYER_OPTIONS.map((count) => {
           const isSelected = value === count;
           return (

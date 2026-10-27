@@ -111,18 +111,18 @@ export const CommunityCardsPicker: React.FC<CommunityCardsPickerProps> = ({
     <div className="flex flex-col gap-2 bg-[#0A121D]/95 border border-[#1A293D] rounded-2xl p-3 shadow-xl select-none">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-white tracking-wide">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs xs:text-sm font-bold text-white tracking-wide whitespace-nowrap">
             Cartas del Flop ({flopCards.length}/3)
           </span>
           {isFlopComplete && (
-            <span className="px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-poker-emerald text-[10px] font-bold">
+            <span className="hidden xs:inline-block px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-500/40 text-poker-emerald text-[10px] font-bold flex-shrink-0">
               Completo
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {isFlopComplete && (
             <button
               type="button"
@@ -130,9 +130,10 @@ export const CommunityCardsPicker: React.FC<CommunityCardsPickerProps> = ({
                 triggerHaptic();
                 setIsManualExpanded((prev) => !prev);
               }}
-              className="h-8 px-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1 bg-[#142132] border border-[#233347] active:scale-95 transition-all"
+              className="h-8 px-2 xs:px-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1 bg-[#142132] border border-[#233347] active:scale-95 transition-all whitespace-nowrap"
             >
-              <span>{showPickerGrid ? 'Ocultar teclado' : 'Teclado'}</span>
+              <span className="xs:hidden">{showPickerGrid ? 'Ocultar' : 'Teclado'}</span>
+              <span className="hidden xs:inline">{showPickerGrid ? 'Ocultar teclado' : 'Teclado'}</span>
               {showPickerGrid ? (
                 <ChevronUp className="w-3.5 h-3.5" />
               ) : (
@@ -150,24 +151,26 @@ export const CommunityCardsPicker: React.FC<CommunityCardsPickerProps> = ({
                 setSelectedRank(null);
                 setSelectedSuit(null);
               }}
+              aria-label="Borrar cartas del flop"
+              title="Borrar cartas del flop"
               className="h-8 px-2.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-red-400 flex items-center gap-1 bg-slate-800/60 border border-slate-700/60 active:scale-95 transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" />
-              <span>Borrar</span>
+              <span className="hidden xs:inline">Borrar</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Visual Board Display (3 Flop Cards + Turn/River honest placeholders) */}
-      <div className="flex items-center justify-center gap-2 py-1">
+      <div className="flex items-center justify-center gap-1.5 xs:gap-2 py-1">
         {[0, 1, 2].map((idx) => {
           const card = flopCards[idx];
           if (!card) {
             return (
               <div
                 key={idx}
-                className="w-14 h-19 rounded-xl border-2 border-dashed border-slate-700/80 bg-slate-900/30 flex items-center justify-center text-slate-400 text-xs font-semibold"
+                className="w-12 h-16 xs:w-14 xs:h-19 rounded-xl border-2 border-dashed border-slate-700/80 bg-slate-900/30 flex items-center justify-center text-slate-400 text-xs font-semibold"
               >
                 Flop {idx + 1}
               </div>
@@ -185,7 +188,7 @@ export const CommunityCardsPicker: React.FC<CommunityCardsPickerProps> = ({
                 onRemoveCard(idx);
               }}
               title="Tocar para quitar carta del flop"
-              className="relative w-14 h-19 bg-white hover:bg-red-50 rounded-xl shadow-xl p-1.5 flex flex-col justify-between border border-slate-200 animate-in zoom-in-95 duration-150 select-none active:scale-95 transition-transform"
+              className="relative w-12 h-16 xs:w-14 xs:h-19 bg-white hover:bg-red-50 rounded-xl shadow-xl p-1.5 flex flex-col justify-between border border-slate-200 animate-in zoom-in-95 duration-150 select-none active:scale-95 transition-transform"
             >
               <div className="flex items-center justify-between w-full leading-none">
                 <span className={cn('text-xs font-black', suitInfo.cardTextClass)}>
@@ -194,7 +197,7 @@ export const CommunityCardsPicker: React.FC<CommunityCardsPickerProps> = ({
                 <X className="w-3 h-3 text-slate-400" />
               </div>
 
-              <div className={cn('text-xl font-bold text-center leading-none', suitInfo.cardTextClass)}>
+              <div className={cn('text-lg xs:text-xl font-bold text-center leading-none', suitInfo.cardTextClass)}>
                 {suitInfo.symbol}
               </div>
 
@@ -206,11 +209,11 @@ export const CommunityCardsPicker: React.FC<CommunityCardsPickerProps> = ({
         })}
 
         {/* Turn & River Honest Placeholders */}
-        <div className="w-12 h-19 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/20 flex flex-col items-center justify-center text-slate-600 text-[10px] font-semibold opacity-50">
+        <div className="w-10 h-16 xs:w-12 xs:h-19 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/20 flex flex-col items-center justify-center text-slate-600 text-[10px] font-semibold opacity-50">
           <span>Turn</span>
           <span className="text-[8px] uppercase">Próx.</span>
         </div>
-        <div className="w-12 h-19 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/20 flex flex-col items-center justify-center text-slate-600 text-[10px] font-semibold opacity-50">
+        <div className="w-10 h-16 xs:w-12 xs:h-19 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/20 flex flex-col items-center justify-center text-slate-600 text-[10px] font-semibold opacity-50">
           <span>River</span>
           <span className="text-[8px] uppercase">Próx.</span>
         </div>

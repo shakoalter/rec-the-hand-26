@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, Coins, Minus, Plus, X, Lock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Coins, Edit3, Minus, Plus, X, Lock } from 'lucide-react';
 import { PokerTable } from '../components/poker/PokerTable';
 import { CardSelector } from '../components/poker/CardSelector';
 import { ActionConsole } from '../components/poker/ActionConsole';
@@ -371,7 +371,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
         : 'Paso 3/3 · Postflop';
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#070C12] text-white flex flex-col justify-between overflow-x-hidden pt-safe pb-safe max-w-md mx-auto px-3.5">
+    <div className="relative app-shell bg-[#070C12] text-white w-full max-w-md mx-auto px-2.5 xs:px-3.5 sm:px-4 pt-safe pb-safe">
       {/* Toast de confirmación de mano guardada */}
       {savedSuccess && (
         <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-emerald-600 border border-emerald-400 text-white font-bold py-2.5 px-5 rounded-2xl shadow-neon-emerald flex items-center gap-2 animate-in fade-in slide-in-from-top duration-200">
@@ -381,7 +381,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       )}
 
       {/* Encabezado Compacto con Indicador de Paso y Acceso Rápido a Revisión */}
-      <header className="flex items-center justify-between py-2 border-b border-slate-800/80">
+      <header className="shrink-0 flex items-center justify-between py-2 border-b border-slate-800/80">
         <button
           type="button"
           onClick={handlePrevStep}
@@ -414,7 +414,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
 
       {/* Barra de Contexto Inteligente en Paso 2 y Paso 3 */}
       {currentStep >= 2 && (
-        <div className="flex items-center justify-between gap-2 py-1.5 border-b border-slate-800/60 text-xs">
+        <div className="shrink-0 flex items-center justify-between gap-2 py-1.5 border-b border-slate-800/60 text-xs">
           <button
             type="button"
             onClick={() => {
@@ -448,7 +448,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
       )}
 
       {/* Contenido Principal */}
-      <div className="flex-1 flex flex-col gap-2 py-1.5 overflow-y-auto no-scrollbar">
+      <main className="flex-1 min-h-0 flex flex-col gap-2 py-1.5 overflow-y-auto no-scrollbar">
         {currentStep === 1 && (
           /* PASO 1: Posición, Stack Opcional y Mano */
           <>
@@ -462,20 +462,23 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                       triggerHaptic();
                       setIsStackModalOpen(true);
                     }}
-                    className="min-h-[36px] flex items-center gap-2 text-left active:scale-98 transition-all"
+                    className="min-h-[36px] min-w-0 flex items-center gap-1.5 xs:gap-2 text-left active:scale-98 transition-all px-1.5 py-1 -ml-1 rounded-lg hover:bg-slate-800/60"
+                    aria-label="Editar stack actual"
+                    title="Tocá el monto para editar el stack"
                   >
                     <Coins className="w-4 h-4 text-poker-emerald flex-shrink-0" />
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-xs sm:text-sm font-extrabold text-poker-emerald">
+                    <div className="flex items-baseline gap-1.5 min-w-0 truncate">
+                      <span className="text-xs sm:text-sm font-extrabold text-poker-emerald whitespace-nowrap">
                         ${stackAtStart.toLocaleString('es-AR')}
                       </span>
-                      <span className="text-[11px] font-semibold text-emerald-400/80">
+                      <span className="text-[11px] font-semibold text-emerald-400/80 whitespace-nowrap">
                         ({Number((stackAtStart / activeSession.blinds.bb).toFixed(1))} BB)
                       </span>
                     </div>
+                    <Edit3 className="w-3.5 h-3.5 text-emerald-400/80 flex-shrink-0" />
                   </button>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
                     <button
                       type="button"
                       onClick={() => {
@@ -504,17 +507,6 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
                       aria-label="Sumar 1 BB al stack"
                     >
                       <Plus className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        triggerHaptic();
-                        setIsStackModalOpen(true);
-                      }}
-                      className="h-9 px-2.5 rounded-lg bg-[#152234] hover:bg-[#1D2F47] active:scale-95 text-xs font-bold text-slate-200 border border-[#243750]"
-                    >
-                      Editar
                     </button>
 
                     <button
@@ -693,10 +685,10 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             />
           </>
         )}
-      </div>
+      </main>
 
       {/* Zona Inferior Anclada */}
-      <div className="pt-1 pb-1">
+      <footer className="shrink-0 pt-1 pb-0.5">
         {currentStep === 1 && (
           <button
             type="button"
@@ -775,7 +767,7 @@ export const HandRecorderView: React.FC<HandRecorderViewProps> = ({ onBackToSess
             <span>Revisar y Guardar mano</span>
           </button>
         )}
-      </div>
+      </footer>
     </div>
   );
 };

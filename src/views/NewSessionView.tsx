@@ -58,7 +58,7 @@ export const NewSessionView: React.FC<NewSessionViewProps> = ({ onSessionStarted
   };
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#070C12] text-white flex flex-col justify-between overflow-x-hidden pt-safe pb-safe">
+    <div className="relative app-shell bg-[#070C12] text-white w-full max-w-md mx-auto px-2.5 xs:px-3.5 sm:px-4 pt-safe pb-safe">
       {/* Ambient background glows & chips illustration */}
       <div className="fixed top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="fixed bottom-10 left-0 w-72 h-72 bg-blue-600/5 rounded-full blur-3xl pointer-events-none" />
@@ -71,31 +71,31 @@ export const NewSessionView: React.FC<NewSessionViewProps> = ({ onSessionStarted
         </div>
       </div>
 
-      {/* Scrollable Container for mobile ergonomics */}
-      <div className="flex-1 w-full max-w-md mx-auto px-3.5 sm:px-4 pt-2.5 pb-24 flex flex-col gap-2.5 z-10">
-        {/* Header */}
-        <header className="flex items-center gap-3 pt-1 pb-0.5">
-          {/* Glowing neon cards logo */}
-          <div className="relative w-12 h-12 flex-shrink-0">
-            {/* Back card */}
-            <div className="absolute top-0 right-1 w-8 h-11 bg-[#121E2C] border border-cyan-400/40 rounded-lg shadow-sm transform rotate-12" />
-            {/* Front card (Ace of Spades with neon glow) */}
-            <div className="absolute top-1 left-0 w-8 h-11 bg-[#0E1A27] border-2 border-cyan-400/80 rounded-lg shadow-[0_0_12px_rgba(34,211,238,0.5)] flex flex-col items-center justify-center text-cyan-300 transform -rotate-6">
-              <span className="text-[10px] font-bold leading-none self-start ml-1 mt-0.5">A</span>
-              <span className="text-xs">♠</span>
-            </div>
+      {/* Header */}
+      <header className="shrink-0 flex items-center gap-3 pt-1 pb-2 border-b border-slate-800/60 z-10">
+        {/* Glowing neon cards logo */}
+        <div className="relative w-12 h-12 flex-shrink-0">
+          {/* Back card */}
+          <div className="absolute top-0 right-1 w-8 h-11 bg-[#121E2C] border border-cyan-400/40 rounded-lg shadow-sm transform rotate-12" />
+          {/* Front card (Ace of Spades with neon glow) */}
+          <div className="absolute top-1 left-0 w-8 h-11 bg-[#0E1A27] border-2 border-cyan-400/80 rounded-lg shadow-[0_0_12px_rgba(34,211,238,0.5)] flex flex-col items-center justify-center text-cyan-300 transform -rotate-6">
+            <span className="text-[10px] font-bold leading-none self-start ml-1 mt-0.5">A</span>
+            <span className="text-xs">♠</span>
           </div>
+        </div>
 
-          <div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">
-              Nueva Sesión
-            </h1>
-            <p className="text-poker-textMuted text-xs font-normal">
-              Configurá los parámetros de tu partida
-            </p>
-          </div>
-        </header>
+        <div>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">
+            Nueva Sesión
+          </h1>
+          <p className="text-poker-textMuted text-xs font-normal">
+            Configurá los parámetros de tu partida
+          </p>
+        </div>
+      </header>
 
+      {/* Scrollable Main Container for mobile ergonomics */}
+      <main className="flex-1 min-h-0 w-full overflow-y-auto no-scrollbar flex flex-col gap-2.5 py-2.5 z-10">
         {/* Section 1: Stack Inicial */}
         <StackPicker
           value={initialStack}
@@ -127,22 +127,20 @@ export const NewSessionView: React.FC<NewSessionViewProps> = ({ onSessionStarted
           note={note}
           onNoteChange={setNote}
         />
-      </div>
+      </main>
 
-      {/* Fixed Sticky Footer for ergonomic thumb accessibility */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 p-4 bg-gradient-to-t from-[#070C12] via-[#070C12]/95 to-transparent pb-safe">
-        <div className="w-full max-w-md mx-auto">
-          <button
-            type="button"
-            onClick={handleStartSession}
-            disabled={!isValid || isSubmitting}
-            className="w-full h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-[0.98] text-white font-bold text-lg rounded-2xl shadow-neon-emerald flex items-center justify-center gap-2.5 transition-all disabled:opacity-40 disabled:pointer-events-none"
-          >
-            <Play className="w-5 h-5 fill-white text-white" />
-            <span>{isSubmitting ? 'Iniciando...' : 'Comenzar sesión'}</span>
-          </button>
-        </div>
-      </div>
+      {/* Anchored Footer within App Shell */}
+      <footer className="shrink-0 pt-2 z-20">
+        <button
+          type="button"
+          onClick={handleStartSession}
+          disabled={!isValid || isSubmitting}
+          className="w-full h-14 bg-gradient-to-r from-poker-emerald to-poker-emeraldDark hover:brightness-110 active:scale-[0.98] text-white font-bold text-lg rounded-2xl shadow-neon-emerald flex items-center justify-center gap-2.5 transition-all disabled:opacity-40 disabled:pointer-events-none"
+        >
+          <Play className="w-5 h-5 fill-white text-white" />
+          <span>{isSubmitting ? 'Iniciando...' : 'Comenzar sesión'}</span>
+        </button>
+      </footer>
     </div>
   );
 };

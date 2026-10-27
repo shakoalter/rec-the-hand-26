@@ -149,9 +149,9 @@ export const SessionActiveView: React.FC = () => {
   const initialBB = Math.round(activeSession.initialStack / activeSession.blinds.bb);
 
   return (
-    <div className="min-h-[100dvh] bg-[#070C12] text-white flex flex-col justify-between p-3.5 sm:p-4 pt-safe pb-safe max-w-md mx-auto">
+    <div className="app-shell bg-[#070C12] text-white w-full max-w-md mx-auto px-2.5 xs:px-3.5 sm:px-4 pt-safe pb-safe">
       {/* Header */}
-      <div className="flex items-center justify-between py-2 border-b border-slate-800/80">
+      <header className="shrink-0 flex items-center justify-between py-2 border-b border-slate-800/80">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-poker-emerald shadow-neon-emerald">
             <Layers className="w-5 h-5" />
@@ -188,10 +188,10 @@ export const SessionActiveView: React.FC = () => {
             <Square className="w-3.5 h-3.5" /> Finalizar
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Main Content Area (Progresivo y sin espacios vacíos forzados) */}
-      <div className="flex-1 flex flex-col gap-3 py-2.5 overflow-y-auto no-scrollbar">
+      {/* Main Content Area (Progresivo y con scroll interno aislado) */}
+      <main className="flex-1 min-h-0 flex flex-col gap-3 py-2.5 overflow-y-auto no-scrollbar">
         {/* Parámetros Compactos & Mini-HUD Unificados */}
         <GlassCard compact>
           <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-800/80 text-xs">
@@ -337,10 +337,10 @@ export const SessionActiveView: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </main>
 
       {/* Bottom Button */}
-      <div className="pt-2">
+      <footer className="shrink-0 pt-2">
         <button
           type="button"
           onClick={handleStartRecording}
@@ -349,7 +349,7 @@ export const SessionActiveView: React.FC = () => {
           <Play className="w-5 h-5 fill-white text-white" />
           <span>Registrar nueva mano</span>
         </button>
-      </div>
+      </footer>
 
       {/* Export Modal */}
       <ExportModal

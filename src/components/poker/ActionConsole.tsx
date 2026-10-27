@@ -108,14 +108,16 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
       {/* Barra de Turno y Atajo Folds hasta Hero */}
       <div className="flex items-center justify-between gap-2">
         {isHero ? (
-          <div className="px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-2 shadow-neon-emerald">
-            <span className="w-2 h-2 rounded-full bg-poker-emerald animate-pulse" />
-            HERO ({currentPosition}) — TU TURNO
+          <div className="min-w-0 px-2.5 xs:px-3 py-1 rounded-full border-2 border-poker-emerald bg-[#092B1D] text-poker-emerald font-black text-xs tracking-wider flex items-center gap-1.5 xs:gap-2 shadow-neon-emerald">
+            <span className="w-2 h-2 rounded-full bg-poker-emerald animate-pulse flex-shrink-0" />
+            <span className="truncate">
+              HERO ({currentPosition})<span className="hidden xs:inline"> — TU TURNO</span>
+            </span>
           </div>
         ) : (
-          <div className="px-3 py-1 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400" />
-            RIVAL ({currentPosition})
+          <div className="min-w-0 px-2.5 xs:px-3 py-1 rounded-full border border-slate-600 bg-[#142030] text-slate-200 font-bold text-xs tracking-wide flex items-center gap-1.5 xs:gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
+            <span className="truncate">RIVAL ({currentPosition})</span>
           </div>
         )}
 
@@ -126,21 +128,21 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
               triggerHaptic();
               onFastForwardToHero?.();
             }}
-            className="min-h-[36px] px-3 py-1 rounded-xl bg-emerald-950/90 hover:bg-emerald-900/80 border border-emerald-500/60 text-emerald-300 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+            className="min-h-[36px] px-2.5 xs:px-3 py-1 rounded-xl bg-emerald-950/90 hover:bg-emerald-900/80 border border-emerald-500/60 text-emerald-300 text-xs font-bold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm flex-shrink-0 whitespace-nowrap"
           >
-            <FastForward className="w-3.5 h-3.5" />
+            <FastForward className="w-3.5 h-3.5 flex-shrink-0" />
             <span>Folds hasta Hero</span>
           </button>
         )}
       </div>
 
-      {/* 4 Botones Táctiles Grandes de Acción (h-14 = 56px) */}
+      {/* 4 Botones Táctiles Grandes de Acción (h-13 en <360px, h-14 desde 360px) */}
       <div className="grid grid-cols-4 gap-2">
         {/* FOLD */}
         <button
           type="button"
           onClick={() => handleAction('fold')}
-          className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60 shadow-md"
+          className="h-13 xs:h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center bg-[#1E2632] hover:bg-[#273240] text-slate-200 border border-slate-700/60 shadow-md"
         >
           Fold
         </button>
@@ -151,7 +153,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
           disabled={isPotRaised}
           onClick={() => handleAction(isBigBlind ? 'check' : 'limp')}
           className={cn(
-            'h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
+            'h-13 xs:h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex items-center justify-center text-white shadow-md',
             isPotRaised
               ? 'bg-slate-800/40 text-slate-600 border border-slate-800 cursor-not-allowed opacity-40'
               : 'bg-[#10B981] hover:bg-[#059669]'
@@ -164,7 +166,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleAction('call')}
-          className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#1D72FE] hover:bg-[#155FD6] shadow-md leading-tight"
+          className="h-13 xs:h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#1D72FE] hover:bg-[#155FD6] shadow-md leading-tight"
         >
           <span>Call</span>
           <span className="text-[11px] font-semibold text-blue-100">
@@ -176,7 +178,7 @@ export const ActionConsole: React.FC<ActionConsoleProps> = ({
         <button
           type="button"
           onClick={() => handleAction('raise')}
-          className="h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-md leading-tight"
+          className="h-13 xs:h-14 rounded-2xl font-bold text-sm sm:text-base transition-all active:scale-95 flex flex-col items-center justify-center text-white bg-[#EF4444] hover:bg-[#DC2626] shadow-md leading-tight"
         >
           <span>{getRaiseButtonLabel()}</span>
           <span className="text-[11px] font-semibold text-red-100">

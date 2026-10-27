@@ -31,11 +31,12 @@ export const PokerTable: React.FC<PokerTableProps> = ({
 }) => {
   const positions = getPositionsForPlayerCount(playerCount);
 
-  // Distribución elíptica optimizada alrededor del óvalo
+  // Distribución elíptica optimizada con ecualización angular de arco
   const getCoordinates = (index: number, total: number) => {
-    const angle = (index / total) * 2 * Math.PI + Math.PI / 2;
-    const rx = 41; // Radio horizontal %
-    const ry = 38; // Radio vertical %
+    const baseAngle = (index / total) * 2 * Math.PI + Math.PI / 2;
+    const angle = total >= 5 ? baseAngle + 0.12 * Math.sin(2 * baseAngle) : baseAngle;
+    const rx = 40.5; // Radio horizontal %
+    const ry = 36; // Radio vertical %
     const x = 50 + rx * Math.cos(angle);
     const y = 50 + ry * Math.sin(angle);
     return { x, y };
@@ -51,14 +52,14 @@ export const PokerTable: React.FC<PokerTableProps> = ({
   return (
     <div
       className={cn(
-        'relative w-full aspect-[16/9.5] max-w-sm mx-auto my-0.5 select-none',
+        'relative w-full aspect-[16/10] max-w-sm mx-auto my-0.5 select-none',
         className
       )}
     >
       {/* Paño de la mesa (Óvalo exterior con margen optimizado inset-2.5) */}
       <div className="absolute inset-2.5 rounded-[56px] bg-gradient-to-b from-[#0A1624] via-[#08121E] to-[#050D15] border-2 border-[#1E3048] shadow-[inset_0_0_20px_rgba(0,0,0,0.85),0_6px_16px_rgba(0,0,0,0.5)] flex items-center justify-center">
         {/* Línea interior de la mesa con información viva de Hero */}
-        <div className="w-[78%] h-[72%] rounded-[44px] border border-cyan-500/15 border-dashed flex flex-col items-center justify-center gap-1 px-2">
+        <div className="w-[76%] h-[68%] rounded-[44px] border border-cyan-500/15 border-dashed flex flex-col items-center justify-center gap-1 px-2">
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
               Posición:
@@ -112,8 +113,8 @@ export const PokerTable: React.FC<PokerTableProps> = ({
             className={cn(
               'absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-150 z-20 flex flex-col items-center justify-center cursor-pointer active:scale-95',
               isHero
-                ? 'w-12 h-12 bg-[#0B251B] border-2 border-poker-emerald shadow-neon-emerald ring-2 ring-poker-emerald/30'
-                : 'w-11 h-11 bg-[#101B29] border border-[#23354C] hover:border-slate-400 text-slate-200'
+                ? 'w-11 h-11 xs:w-12 xs:h-12 bg-[#0B251B] border-2 border-poker-emerald shadow-neon-emerald ring-2 ring-poker-emerald/30'
+                : 'w-10 h-10 xs:w-11 xs:h-11 bg-[#101B29] border border-[#23354C] hover:border-slate-400 text-slate-200'
             )}
             aria-label={`Seleccionar asiento ${pos}`}
           >
@@ -134,7 +135,7 @@ export const PokerTable: React.FC<PokerTableProps> = ({
                 </span>
               </>
             ) : (
-              <span className="text-xs font-bold text-slate-200 tracking-tight">
+              <span className="text-[11px] xs:text-xs font-bold text-slate-200 tracking-tight leading-none">
                 {pos}
               </span>
             )}

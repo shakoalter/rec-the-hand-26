@@ -107,9 +107,9 @@ export const HandReviewView: React.FC<HandReviewViewProps> = ({
   }, [preflopActions]);
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#070C12] text-white flex flex-col justify-between overflow-x-hidden pt-safe pb-safe max-w-md mx-auto px-3.5 sm:px-4">
+    <div className="relative app-shell bg-[#070C12] text-white w-full max-w-md mx-auto px-2.5 xs:px-3.5 sm:px-4 pt-safe pb-safe">
       {/* Header */}
-      <header className="flex items-center justify-between py-2 border-b border-slate-800/80">
+      <header className="shrink-0 flex items-center justify-between py-2 border-b border-slate-800/80">
         <button
           type="button"
           onClick={() => {
@@ -146,7 +146,7 @@ export const HandReviewView: React.FC<HandReviewViewProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col gap-2.5 py-2.5 overflow-y-auto no-scrollbar">
+      <main className="flex-1 min-h-0 flex flex-col gap-2.5 py-2.5 overflow-y-auto no-scrollbar">
         {/* Metadatos Card Compacta */}
         <div className="bg-[#0C1624] border border-[#1E2E42] rounded-2xl p-3.5 shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2">
@@ -328,10 +328,10 @@ export const HandReviewView: React.FC<HandReviewViewProps> = ({
             {notes}
           </div>
         )}
-      </div>
+      </main>
 
       {/* Bottom Actions Bar */}
-      <div className="pt-2 pb-1 flex items-center gap-3">
+      <footer className="shrink-0 pt-2 pb-0.5 flex items-center gap-3">
         {isExistingSavedHand ? (
           <button
             type="button"
@@ -371,7 +371,7 @@ export const HandReviewView: React.FC<HandReviewViewProps> = ({
             </button>
           </>
         )}
-      </div>
+      </footer>
     </div>
   );
 };

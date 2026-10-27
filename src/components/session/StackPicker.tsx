@@ -51,11 +51,12 @@ export const StackPicker: React.FC<StackPickerProps> = ({ value, onChange }) => 
             </svg>
           </div>
           <div className="min-w-0">
-            <h2 className="text-white font-bold text-sm sm:text-base tracking-wide truncate">
+            <h2 className="text-white font-bold text-sm sm:text-base tracking-wide whitespace-nowrap">
               Stack inicial
             </h2>
             <p className="text-poker-textMuted text-[11px] truncate">
-              Tocá el monto para escribir
+              <span className="xs:hidden">Tocá para editar</span>
+              <span className="hidden xs:inline">Tocá el monto para editar</span>
             </p>
           </div>
         </div>
@@ -71,21 +72,21 @@ export const StackPicker: React.FC<StackPickerProps> = ({ value, onChange }) => 
       </div>
 
       {/* Bottom row: Presets */}
-      <div className="grid grid-cols-6 gap-1.5">
+      <div className="grid grid-cols-6 gap-1 xs:gap-1.5">
         {PRESETS.map((p) => (
           <PresetPill
             key={p.label}
             label={p.label}
             isActive={value === p.value}
             onClick={() => handlePreset(p.value)}
-            className="px-1.5 text-xs sm:text-sm"
+            className="px-1 xs:px-1.5 text-xs sm:text-sm whitespace-nowrap"
           />
         ))}
         <PresetPill
           label="Otro"
           isActive={isCustom}
           onClick={() => setIsModalOpen(true)}
-          className="px-1.5 text-xs sm:text-sm"
+          className="px-1 xs:px-1.5 text-xs sm:text-sm whitespace-nowrap"
         />
       </div>
 

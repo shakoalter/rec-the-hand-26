@@ -61,15 +61,16 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-2.5 bg-[#0A121D]/95 border border-[#1C2C3F] rounded-2xl p-3.5 shadow-2xl select-none">
+    <div className="flex flex-col gap-2.5 bg-[#0A121D]/95 border border-[#1C2C3F] rounded-2xl p-3 xs:p-3.5 shadow-2xl select-none">
       {/* Hero Postflop Header */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-poker-emerald font-black text-xs shadow-neon-emerald">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-poker-emerald font-black text-xs shadow-neon-emerald flex-shrink-0">
             H
           </div>
-          <span className="text-sm font-bold text-white tracking-wide">
-            Acción de Hero en el Flop ({heroPosition})
+          <span className="text-xs xs:text-sm font-bold text-white tracking-wide min-w-0 truncate">
+            <span className="xs:hidden">Acción Flop ({heroPosition})</span>
+            <span className="hidden xs:inline">Acción de Hero en el Flop ({heroPosition})</span>
           </span>
         </div>
 
@@ -81,7 +82,7 @@ export const FlopActionConsole: React.FC<FlopActionConsoleProps> = ({
               onClearFlopActions();
               setSelectedAction(null);
             }}
-            className="h-7 px-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1 active:scale-95 transition-all"
+            className="h-7 px-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1 active:scale-95 transition-all flex-shrink-0"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Limpiar</span>

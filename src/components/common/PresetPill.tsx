@@ -1,5 +1,5 @@
 import React from 'react';
-import { clsx } from 'clsx';
+import { cn } from '../../utils/cn';
 
 interface PresetPillProps {
   label: string;
@@ -25,7 +25,7 @@ export const PresetPill: React.FC<PresetPillProps> = ({
     <button
       type="button"
       onClick={handleClick}
-      className={clsx(
+      className={cn(
         'h-10 px-3.5 rounded-xl text-sm font-semibold transition-all duration-150 flex items-center justify-center select-none active:scale-95 whitespace-nowrap',
         isActive
           ? 'bg-[#0E2922] text-white border-2 border-poker-emerald shadow-neon-emerald'
